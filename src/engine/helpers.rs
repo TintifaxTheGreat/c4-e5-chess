@@ -1,29 +1,27 @@
-use chess::Color;
-use chess::Piece;
-use chess::{BitBoard, Board};
+use chess::{Board, Color, Piece};
 
-fn north_fill(p: u64) -> u64 {
+pub fn north_fill(p: u64) -> u64 {
     let mut result = p | (p << 8);
     result = result | (result << 16);
     return result | (result << 32);
 }
 
-fn south_fill(p: u64) -> u64 {
+pub fn south_fill(p: u64) -> u64 {
     let mut result = p | (p >> 8);
     result = result | (result >> 16);
     return result | (result >> 32);
 }
 
-fn file_fill(p: u64) -> u64 {
+pub fn file_fill(p: u64) -> u64 {
     return north_fill(p) | south_fill(p);
 }
 
-fn open_files(b: Board) -> u64 {
+pub fn open_files(b: Board) -> u64 {
     let pawns = b.pieces(Piece::Pawn).0;
     return !file_fill(pawns);
 }
 
-fn half_open_files(b: Board) -> u64 {
+pub fn half_open_files(b: Board) -> u64 {
     let white = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::White).0);
     let black = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::Black).0);
     return (white & !black) | (!white & black);
