@@ -19,7 +19,7 @@ impl Game {
         } else {
             fen
         });
-        if (board.is_some()) {
+        if board.is_some() {
             Self {
                 max_depth: if max_depth == 0 {
                     INIT_MAX_DEPTH
