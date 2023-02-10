@@ -30,6 +30,7 @@ pub fn half_open_files(b: Board) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_north_fill() {
@@ -46,22 +47,18 @@ mod tests {
     }
 
     #[test]
-    fn test_open_files() {
-        let board = Board::from_fen(String::from(
-            "rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1",
-        ));
-        if board.is_some() {
-            assert_eq!(open_files(board.unwrap()), 0x8282828282828282);
-        }
+    fn test_open_files() -> Result<(), chess::Error> {
+        let board = Board::from_str("rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1")?;
+        assert_eq!(open_files(board), 0x8282828282828282);
+
+        Ok(())
     }
 
     #[test]
-    fn test_half_open_files() {
-        let board = Board::from_fen(String::from(
-            "rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1",
-        ));
-        if board.is_some() {
-            assert_eq!(half_open_files(board.unwrap()), 0x2828282828282828);
-        }
+    fn test_half_open_files() -> Result<(), chess::Error> {
+        let board = Board::from_str("rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1")?;
+        assert_eq!(half_open_files(board), 0x2828282828282828);
+
+        Ok(())
     }
 }

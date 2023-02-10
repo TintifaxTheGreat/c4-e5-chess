@@ -4,7 +4,7 @@ use super::{
 };
 use chess::{Board, Color, Piece};
 
-fn evaluate(b: Board, movesCount: i16) -> i16 {
+fn evaluate(b: Board, moves_count: i16) -> i16 {
     let mut value: i16 = 0;
     let pieces_count = b.combined().count();
 
@@ -56,7 +56,7 @@ fn evaluate(b: Board, movesCount: i16) -> i16 {
     value += (white_queens.count_ones() * 1790) as i16;
     value -= (black_queens.count_ones() * 1800) as i16;
 
-    if movesCount < 12 {
+    if moves_count < 12 {
         value += ((white_queens & CB_GOOD_QUEEN).count_ones() * 120) as i16;
         value -= ((black_queens & CB_GOOD_QUEEN).count_ones() * 120) as i16;
     }
@@ -78,37 +78,30 @@ fn evaluate(b: Board, movesCount: i16) -> i16 {
         value -= ((black_king & CB_SAFE_KING).count_ones() * 130) as i16;
     }
 
+    // Endgame rules
+    let defending_king: u64;
+    if b.side_to_move() == Color::White {
+        defending_king = black_king;
+    } else {
+        defending_king = white_king;
+        value *= -1;
+    }
     if pieces_count < 8 {
         if value < 0 {
+            // TODO value += distance(b.White.Kings, b.Black.Kings) * 20
+            // TODO value += countFiguresMoves(b, bbDefendingKing) * 10
+            value += ((defending_king & CB_CENTER_0).count_ones() * 80) as i16;
+            value += ((defending_king & CB_CENTER_1).count_ones() * 40) as i16;
+            value += ((defending_king & CB_BOARD_1).count_ones() * 10) as i16;
+            value -= ((defending_king & CB_BOARD_0).count_ones() * 50) as i16;
         } else {
+            // TODO value -= distance(b.White.Kings, b.Black.Kings) * 20
+            // TODO value -= countFiguresMoves(b, bbDefendingKing) * 10
+            value -= ((defending_king & CB_CENTER_0).count_ones() * 80) as i16;
+            value -= ((defending_king & CB_CENTER_1).count_ones() * 40) as i16;
+            value -= ((defending_king & CB_BOARD_1).count_ones() * 10) as i16;
+            value += ((defending_king & CB_BOARD_0).count_ones() * 50) as i16;
         }
     }
-
-    /*
-
-        bbDefendingKing := b.White.Kings
-        if b.Wtomove == false {
-            value *= -1
-            bbDefendingKing = b.Black.Kings
-        }
-
-        if piecesCount < 8 {
-            if value < 0 {
-                value += distance(b.White.Kings, b.Black.Kings) * 20
-                value += countFiguresMoves(b, bbDefendingKing) * 10
-                value += bits.OnesCount64(bbDefendingKing&cbCenter0) * 80
-                value += bits.OnesCount64(bbDefendingKing&cbCenter1) * 40
-                value += bits.OnesCount64(bbDefendingKing&cbBoard1) * 10
-                value -= bits.OnesCount64(bbDefendingKing&cbBoard0) * 50
-            } else {
-                value -= distance(b.White.Kings, b.Black.Kings) * 20
-                value -= countFiguresMoves(b, bbDefendingKing) * 10
-                value -= bits.OnesCount64(bbDefendingKing&cbCenter0) * 80
-                value -= bits.OnesCount64(bbDefendingKing&cbCenter1) * 40
-                value -= bits.OnesCount64(bbDefendingKing&cbBoard1) * 10
-                value += bits.OnesCount64(bbDefendingKing&cbBoard0) * 50
-            }
-        }
-    */
     return value;
 }
