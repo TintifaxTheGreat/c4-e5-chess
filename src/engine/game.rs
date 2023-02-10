@@ -1,25 +1,27 @@
-use chess::Board;
-use std::time::Duration;
+use super::constants::*;
+use chess::{Board, ChessMove, MoveGen};
+use std::{cell::Cell, str::FromStr, time::Duration};
 
-use super::constants::{DEFAULT_TIME, INIT_MAX_DEPTH, INIT_QUIET_DEPTH, START_FEN};
+#[derive(Debug)]
+pub enum ChessError {
+    NoValidMoveFound,
+    FenNotValid,
+}
 
+pub type MoveResult = Result<ChessMove, ChessError>;
 struct Game {
     max_depth: u16,
     inc_quiet_depth: u16,
     board: Board,
-    playing: bool,
+    playing: Cell<bool>,
     move_time: Duration,
     //TODO board_history:
 }
 
 impl Game {
-    fn new(fen: String, max_depth: u16, inc_quiet_depth: u16, move_time: Duration) -> Self {
-        let board = Board::from_fen(if fen.is_empty() {
-            String::from(START_FEN)
-        } else {
-            fen
-        });
-        if board.is_some() {
+    pub fn new(fen: String, max_depth: u16, inc_quiet_depth: u16, move_time: Duration) -> Self {
+        let board = Board::from_str(if fen.is_empty() { START_FEN } else { &fen });
+        if !board.is_err() {
             Self {
                 max_depth: if max_depth == 0 {
                     INIT_MAX_DEPTH
@@ -32,7 +34,7 @@ impl Game {
                     inc_quiet_depth
                 },
                 board: board.unwrap(),
-                playing: true,
+                playing: Cell::new(true),
                 move_time: if move_time.is_zero() {
                     DEFAULT_TIME
                 } else {
@@ -42,5 +44,73 @@ impl Game {
         } else {
             panic!("FEN not valid");
         }
+    }
+
+    pub fn find_move(&mut self) -> MoveResult {
+        let mut result: Board = Board::default();
+        let alpha = MIN_INT;
+        let beta = MAX_INT;
+        let current_depth: u16 = 0;
+        let mut best_move: MoveResult = Err(ChessError::NoValidMoveFound);
+
+        let mut moves = MoveGen::new_legal(&self.board);
+        if moves.len() == 1 {
+            return Ok(moves.next().unwrap());
+        }
+
+        while current_depth <= self.max_depth {
+            let mut prior_values: Vec<(&ChessMove, i32)>;
+
+            for m in &mut moves {
+                &self.board.make_move(m, &mut result); //TODO
+            }
+        }
+
+        return best_move;
+    }
+
+    fn negamax(
+        depth: u16,
+        alpha: i32,
+        beta: i32,
+        unsorted: bool,
+        is_quiescence: bool,
+    ) -> MoveResult {
+        let mut best_move: MoveResult = Err(ChessError::NoValidMoveFound);
+
+        return best_move;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_move_gen() -> Result<(), chess::Error> {
+        let board = Board::from_str("rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1")?;
+        let mut moves = MoveGen::new_legal(&board);
+        let defending = board.color_combined(!board.side_to_move());
+        moves.set_iterator_mask(*defending);
+        let mut count = 0;
+        for _ in &mut moves {
+            count += 1;
+        }
+        println!("{}", count);
+        assert_eq!(count, 2);
+
+        let board = Board::from_str("4kN2/4P3/7K/b5B1/2N2R2/6rn/2P5/8 b - - 0 1")?;
+        let mut moves = MoveGen::new_legal(&board);
+        let defending = board.color_combined(!board.side_to_move());
+        moves.set_iterator_mask(*defending);
+        let mut count = 0;
+        for _ in &mut moves {
+            count += 1;
+        }
+        println!("{}", count);
+        assert_eq!(count, 3);
+
+        Ok(())
     }
 }
