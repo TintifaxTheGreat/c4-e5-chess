@@ -57,3 +57,51 @@ impl Store {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::game::Game;
+    use std::time::Duration;
+
+    #[test]
+    fn test_store() {
+        let g = Game::new("".to_string(), 10, 10, Duration::new(10, 0));
+        let mut store = Store::new();
+
+        let result = store.get(5, &g.board);
+        assert_eq!(result, None);
+
+        store.put(
+            5,
+            300,
+            &g.board,
+            &ChessMove::from_san(&g.board, "c2c4").unwrap(),
+        );
+
+        let (m, v) = store.get(5, &g.board).unwrap();
+        //assert_eq!(result, None);
+        assert_eq!(v, 300);
+        assert_eq!(m.to_string(), "c2c4");
+
+        let result = store.get(6, &g.board);
+        assert_eq!(result, None);
+
+        let (m, v) = store.get(4, &g.board).unwrap();
+        //assert_eq!(result, None);
+        assert_eq!(v, 300);
+        assert_eq!(m.to_string(), "c2c4");
+
+        store.put(
+            5,
+            305,
+            &g.board,
+            &ChessMove::from_san(&g.board, "e2e4").unwrap(),
+        );
+
+        let (m, v) = store.get(4, &g.board).unwrap();
+        //assert_eq!(result, None);
+        assert_eq!(v, 305);
+        assert_eq!(m.to_string(), "e2e4")
+    }
+}
