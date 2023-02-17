@@ -3,8 +3,6 @@ use std::collections::HashMap;
 
 use chess::{Board, ChessMove};
 
-use super::game::{MoveValue, MoveValueOption};
-
 pub struct Item {
     depth: u16,
     value: i32,
