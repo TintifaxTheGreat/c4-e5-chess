@@ -4,4 +4,4 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-ferris-says = "0.2"
+chess = "3.2.0"
