@@ -4,15 +4,8 @@ use super::{constants::*, store::Store};
 use chess::{Board, ChessMove, MoveGen};
 use std::{cell::Cell, mem, str::FromStr, time::Duration};
 
-#[derive(Debug)]
-pub enum ChessError {
-    NoValidMoveFound,
-    FenNotValid,
-}
-
 pub struct Game {
     max_depth: u16,
-    inc_quiet_depth: u16,
     pub board: Board,
     playing: Cell<bool>,
     move_time: Duration,
@@ -20,18 +13,13 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(fen: String, max_depth: u16, inc_quiet_depth: u16, move_time: Duration) -> Self {
+    pub fn new(fen: String, max_depth: u16, move_time: Duration) -> Self {
         match Board::from_str(if fen.is_empty() { START_FEN } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
                     INIT_MAX_DEPTH
                 } else {
                     max_depth
-                },
-                inc_quiet_depth: if inc_quiet_depth == 0 {
-                    INIT_QUIET_DEPTH
-                } else {
-                    inc_quiet_depth
                 },
                 board: board,
                 playing: Cell::new(true),
@@ -41,7 +29,7 @@ impl Game {
                     move_time
                 },
             },
-            Err(e) => panic!("FEN not valid"),
+            Err(_) => panic!("FEN not valid"),
         }
     }
 
@@ -165,7 +153,6 @@ mod tests {
         let mut g = Game::new(
             "r1b2k1r/pppq3p/2np1p2/8/2B2B2/8/PPP3PP/4RR1K w - - 0 1".to_string(),
             4,
-            0,
             Duration::new(5, 0),
         );
         match g.find_move() {
@@ -177,7 +164,6 @@ mod tests {
         let mut g = Game::new(
             "1rb4r/pkPp3p/1b1P3n/1Q6/N3Pp2/8/P1P3PP/7K w - - 1 1".to_string(),
             4,
-            0,
             Duration::new(5, 0),
         );
         match g.find_move() {
@@ -189,7 +175,6 @@ mod tests {
         let mut g = Game::new(
             "8/2Q5/8/6q1/2K5/8/8/7k b - - 0 1".to_string(),
             4,
-            0,
             Duration::new(5, 0),
         );
         match g.find_move() {
@@ -201,7 +186,6 @@ mod tests {
         let mut g = Game::new(
             "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
             4,
-            0,
             Duration::new(5, 0),
         );
         match g.find_move() {
@@ -213,7 +197,6 @@ mod tests {
         let mut g = Game::new(
             "8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1".to_string(),
             4,
-            0,
             Duration::new(5, 0),
         );
         match g.find_move() {
@@ -222,17 +205,15 @@ mod tests {
         }
 
         // Test 6
-        
+
         let mut g = Game::new(
             "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
             4, //TODO 4
-            0,
             Duration::new(5, 0),
         );
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "e5e1"),
             None => panic!("No move found"),
         }
-        
     }
 }

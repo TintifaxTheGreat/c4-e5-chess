@@ -3,7 +3,7 @@ use std::mem;
 use chess::{Board, ChessMove, MoveGen, BoardStatus};
 
 use super::{
-    constants::{INIT_QUIET_DEPTH, PVS_DEPTH, MATE, MAX_INT},
+    constants::{INIT_QUIET_DEPTH, PVS_DEPTH, MATE},
     evaluate::evaluate,
     move_gen::MoveGenPrime,
     store::Store,
@@ -27,8 +27,8 @@ pub fn negamax(
             if fresh {
                 return (Some(mm), v);
             } else {
+                let mut i = 0;
                 for c in &mut children.clone().into_iter() {
-                    let mut i = 0;
                     if c.0 == mm {
                         children.swap(0,i);
                         break;
