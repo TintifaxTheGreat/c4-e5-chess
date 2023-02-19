@@ -20,9 +20,9 @@ pub const MAX_INT: i32 = 1000000;
 pub const MIN_INT: i32 = -1000000;
 pub const INIT_MAX_DEPTH: u16 = 99;
 pub const INIT_QUIET_DEPTH: u16 = 1;
-pub const LATE_PRUNING_THRESHOLD: u16 = 60;
+pub const LATE_PRUNING_THRESHOLD: i32 = 60;
 pub const LATE_PRUNING_DEPTH: u16 = 3;
-pub const PVS_DEPTH: u32 = 2;
+pub const PVS_DEPTH: u16 = 2;
 
 // Game
 pub const DEFAULT_TIME: Duration =  Duration::from_millis(10000);

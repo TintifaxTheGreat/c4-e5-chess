@@ -38,7 +38,7 @@ impl Store {
         }
     }
 
-    pub fn get(&mut self, depth: u16, b: &Board) -> Option<(ChessMove, i32)> {
+    pub fn get(&mut self, depth: u16, b: &Board) -> Option<(ChessMove, i32, bool)> {
         // TODO why do we have to use mutable? --> Change implementation!
 
         let key = *b;
@@ -46,9 +46,9 @@ impl Store {
             Occupied(val) => {
                 let old_item = val.get();
                 if old_item.depth < depth {
-                    None
+                    Some((old_item.chessmove, old_item.value, false))
                 } else {
-                    Some((old_item.chessmove, old_item.value))
+                    Some((old_item.chessmove, old_item.value, true))
                 }
             }
             Vacant(_) => None,
@@ -77,18 +77,19 @@ mod tests {
             &ChessMove::from_san(&g.board, "c2c4").unwrap(),
         );
 
-        let (m, v) = store.get(5, &g.board).unwrap();
-        //assert_eq!(result, None);
+        let (m, v, fresh) = store.get(5, &g.board).unwrap();
         assert_eq!(v, 300);
         assert_eq!(m.to_string(), "c2c4");
+        assert_eq!(fresh,true);
 
-        let result = store.get(6, &g.board);
-        assert_eq!(result, None);
+        let (m, v, fresh) = store.get(6, &g.board).unwrap();
+        assert_eq!(m.to_string(), "c2c4");
+        assert_eq!(fresh,false);
 
-        let (m, v) = store.get(4, &g.board).unwrap();
-        //assert_eq!(result, None);
+        let (m, v, fresh) = store.get(4, &g.board).unwrap();
         assert_eq!(v, 300);
         assert_eq!(m.to_string(), "c2c4");
+        assert_eq!(fresh,true);
 
         store.put(
             5,
@@ -97,9 +98,9 @@ mod tests {
             &ChessMove::from_san(&g.board, "e2e4").unwrap(),
         );
 
-        let (m, v) = store.get(4, &g.board).unwrap();
-        //assert_eq!(result, None);
+        let (m, v, fresh) = store.get(4, &g.board).unwrap();
         assert_eq!(v, 305);
-        assert_eq!(m.to_string(), "e2e4")
+        assert_eq!(m.to_string(), "e2e4");
+        assert_eq!(fresh,true);
     }
 }

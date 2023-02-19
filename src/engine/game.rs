@@ -1,16 +1,14 @@
 use crate::engine::negamax::negamax;
 
-use super::{constants::*, evaluate::evaluate, store::Item, store::Store};
+use super::{constants::*, store::Store};
 use chess::{Board, ChessMove, MoveGen};
-use std::{cell::Cell, clone, mem, str::FromStr, time::Duration};
+use std::{cell::Cell, mem, str::FromStr, time::Duration};
 
 #[derive(Debug)]
 pub enum ChessError {
     NoValidMoveFound,
     FenNotValid,
 }
-
-pub type MoveValue = (ChessMove, i32);
 
 pub struct Game {
     max_depth: u16,
@@ -49,7 +47,6 @@ impl Game {
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
         let mut store: Store = Store::new();
-        let mut result: Board = Board::default();
         let alpha = MIN_INT;
         let beta = MAX_INT;
         let mut current_depth: u16 = 0;
@@ -67,11 +64,27 @@ impl Game {
             for i in 0..prior_values.len() {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
                 unsafe {
-                    &self
+                    let _ = &self
                         .board
                         .make_move(prior_values[i].0, &mut *bresult.as_mut_ptr());
                     match store.get(current_depth, &*bresult.as_ptr()) {
-                        Some((_mm, vv)) => prior_values[i] = (prior_values[i].0, -vv),
+                        Some((_mm, vv, fresh)) => {
+                            if fresh {
+                                prior_values[i] = (prior_values[i].0, -vv);
+                            } else {
+                                // TODO make this more elegant
+                                let (_mm, vv) = negamax(
+                                    *bresult.as_ptr(),
+                                    &mut store,
+                                    current_depth,
+                                    -beta,
+                                    -alpha,
+                                    false,
+                                    false,
+                                );
+                                prior_values[i] = (prior_values[i].0, -vv);
+                            }
+                        }
                         None => {
                             let (_mm, vv) = negamax(
                                 *bresult.as_ptr(),
@@ -82,7 +95,7 @@ impl Game {
                                 false,
                                 false,
                             );
-                            prior_values[i] = (prior_values[i].0, -vv); // TODO check if this is correcdt
+                            prior_values[i] = (prior_values[i].0, -vv);
                         }
                     }
                 }
@@ -97,7 +110,18 @@ impl Game {
                 break;
             }
 
-            // TODO add late pruning here
+            // late pruning
+            if current_depth > LATE_PRUNING_DEPTH {
+                let mut cut_index = prior_values.len();
+                for i in 0..prior_values.len() {
+                    if prior_values[i].1 < best_value - LATE_PRUNING_THRESHOLD {
+                        cut_index = i;
+                        // TODO log.Print("cut at ", i)
+                        break;
+                    }
+                }
+                prior_values.truncate(cut_index);
+            }
 
             current_depth += 1;
         }
@@ -173,20 +197,7 @@ mod tests {
             None => panic!("No move found"),
         }
 
-        /*
         // Test 4
-        let mut g = Game::new(
-            "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
-            4,
-            0,
-            Duration::new(5, 0),
-        );
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "e5e1"),
-            None => panic!("No move found"),
-        }
-
-        // Test 5
         let mut g = Game::new(
             "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
             4,
@@ -198,8 +209,7 @@ mod tests {
             None => panic!("No move found"),
         }
 
-
-        // Test 6
+        // Test 5
         let mut g = Game::new(
             "8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1".to_string(),
             4,
@@ -210,6 +220,19 @@ mod tests {
             Some(m) => assert_eq!(m.to_string(), "c4h4"),
             None => panic!("No move found"),
         }
-        */
+
+        // Test 6
+        
+        let mut g = Game::new(
+            "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
+            4, //TODO 4
+            0,
+            Duration::new(5, 0),
+        );
+        match g.find_move() {
+            Some(m) => assert_eq!(m.to_string(), "e5e1"),
+            None => panic!("No move found"),
+        }
+        
     }
 }

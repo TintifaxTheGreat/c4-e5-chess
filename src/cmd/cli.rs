@@ -84,8 +84,4 @@ impl Cli {
     fn send_ready_ok(&self) {
         println!("readyok");
     }
-
-    fn debug(s: &str) {
-        println!("DEBUG {}", s);
-    }
 }
