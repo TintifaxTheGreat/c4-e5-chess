@@ -5,10 +5,11 @@ use chess::{Board, ChessMove, MoveGen};
 use std::{cell::Cell, mem, str::FromStr, time::Duration};
 
 pub struct Game {
-    max_depth: u16,
+    pub max_depth: u16,
     pub board: Board,
-    playing: Cell<bool>,
-    move_time: Duration,
+    pub move_time: Duration,
+    pub move_number: u16,
+    pub playing: Cell<bool>,
     //TODO board_history:
 }
 
@@ -28,6 +29,7 @@ impl Game {
                 } else {
                     move_time
                 },
+                move_number: 0,
             },
             Err(_) => panic!("FEN not valid"),
         }
@@ -114,6 +116,12 @@ impl Game {
             current_depth += 1;
         }
         return best_move;
+    }
+}
+
+impl Default for Game {
+    fn default() -> Game {
+        Game::new(String::from(""),0,Duration::new(0,0))
     }
 }
 

@@ -4,6 +4,6 @@ mod cmd;
 mod engine;
 
 fn main() {
-    let cli = Cli{};
+    let mut cli = Cli::new();
     cli.execute();
 }
