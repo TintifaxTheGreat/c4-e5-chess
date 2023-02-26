@@ -34,8 +34,7 @@ impl TimeManagement {
             time_usage_percent = TIME_USAGE_PERCENT_EARLY_GAME;
         }
 
-        let new_time_ms = (time_for_all_moves * time_usage_percent) / (self.moves_to_go * 100);
-        g.move_time = Duration::from_millis(u64::from(new_time_ms));
+        g.move_time = (time_for_all_moves * time_usage_percent) / (self.moves_to_go * 100);
     }
 }
 

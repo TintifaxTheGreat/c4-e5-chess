@@ -1,20 +1,23 @@
-use crate::engine::negamax::negamax;
-
 use super::{constants::*, store::Store};
+use crate::engine::negamax::negamax;
 use chess::{Board, ChessMove, MoveGen};
-use std::{cell::Cell, mem, str::FromStr, time::Duration};
+use std::{
+    mem,
+    str::FromStr,
+    sync::{atomic::{AtomicBool, Ordering}, Arc},
+};
 
 pub struct Game {
     pub max_depth: u16,
     pub board: Board,
-    pub move_time: Duration,
+    pub move_time: u16, // in Milliseconds
     pub move_number: u16,
-    pub playing: Cell<bool>,
+    pub playing: Arc<AtomicBool>,
     //TODO board_history:
 }
 
 impl Game {
-    pub fn new(fen: String, max_depth: u16, move_time: Duration) -> Self {
+    pub fn new(fen: String, max_depth: u16, move_time: u16) -> Self {
         match Board::from_str(if fen.is_empty() { START_FEN } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
@@ -23,8 +26,8 @@ impl Game {
                     max_depth
                 },
                 board: board,
-                playing: Cell::new(true),
-                move_time: if move_time.is_zero() {
+                playing: Arc::new(AtomicBool::new(true)),
+                move_time: if move_time == 0 {
                     DEFAULT_TIME
                 } else {
                     move_time
@@ -121,7 +124,7 @@ impl Game {
 
 impl Default for Game {
     fn default() -> Game {
-        Game::new(String::from(""),0,Duration::new(0,0))
+        Game::new(String::from(""), 0, 0)
     }
 }
 
@@ -161,7 +164,7 @@ mod tests {
         let mut g = Game::new(
             "r1b2k1r/pppq3p/2np1p2/8/2B2B2/8/PPP3PP/4RR1K w - - 0 1".to_string(),
             4,
-            Duration::new(5, 0),
+            5000,
         );
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "f4h6"),
@@ -172,7 +175,7 @@ mod tests {
         let mut g = Game::new(
             "1rb4r/pkPp3p/1b1P3n/1Q6/N3Pp2/8/P1P3PP/7K w - - 1 1".to_string(),
             4,
-            Duration::new(5, 0),
+            5000,
         );
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "b5d5"),
@@ -180,11 +183,7 @@ mod tests {
         }
 
         // Test 3
-        let mut g = Game::new(
-            "8/2Q5/8/6q1/2K5/8/8/7k b - - 0 1".to_string(),
-            4,
-            Duration::new(5, 0),
-        );
+        let mut g = Game::new("8/2Q5/8/6q1/2K5/8/8/7k b - - 0 1".to_string(), 4, 5000);
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "g5c1"),
             None => panic!("No move found"),
@@ -194,7 +193,7 @@ mod tests {
         let mut g = Game::new(
             "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
             4,
-            Duration::new(5, 0),
+            5000,
         );
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "f1h1"),
@@ -202,11 +201,7 @@ mod tests {
         }
 
         // Test 5
-        let mut g = Game::new(
-            "8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1".to_string(),
-            4,
-            Duration::new(5, 0),
-        );
+        let mut g = Game::new("8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1".to_string(), 4, 5000);
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "c4h4"),
             None => panic!("No move found"),
@@ -217,7 +212,7 @@ mod tests {
         let mut g = Game::new(
             "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
             4, //TODO 4
-            Duration::new(5, 0),
+            5000,
         );
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "e5e1"),

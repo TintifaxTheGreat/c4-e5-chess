@@ -25,7 +25,7 @@ pub const LATE_PRUNING_DEPTH: u16 = 3;
 pub const PVS_DEPTH: u16 = 2;
 
 // Game
-pub const DEFAULT_TIME: Duration =  Duration::from_millis(10000);
+pub const DEFAULT_TIME: u16 = 10000; // in Milliseconds
 
 // Evaluation
 pub const MATE_LEVEL: i32 = 55000;

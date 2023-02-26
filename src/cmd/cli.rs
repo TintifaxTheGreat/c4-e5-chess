@@ -1,10 +1,12 @@
-use std::{io::stdin, str::SplitWhitespace, time::Duration};
-
-use chess::Board;
-
-use crate::engine::game::Game;
-
 use super::time_management::TimeManagement;
+use crate::engine::game::Game;
+use chess::Board;
+use std::{
+    io::stdin,
+    str::SplitWhitespace,
+    sync::{mpsc::channel, Arc, atomic::Ordering},
+};
+use timer::Timer;
 
 pub struct Cli {
     game: Game,
@@ -124,7 +126,7 @@ impl Cli {
                     "movetime" => match args.next() {
                         Some(arg) => match arg.parse::<u16>() {
                             Ok(a) => {
-                                self.game.move_time = Duration::from_millis(u64::from(a * 9 / 10));
+                                self.game.move_time = a * 9 / 10;
                                 self.timer_start();
                             }
                             Err(_) => break,
@@ -140,9 +142,19 @@ impl Cli {
     }
 
     fn timer_start(&mut self) {
-        // TODO Start a timer
-        // TODO create a channel
-        self.game.playing.set(true);
+        let timer = Timer::new();
+        let (tx, rx) = channel();
+
+        self.game.playing.store(true, Ordering::Relaxed);
+        let stop_bool = self.game.playing.clone();
+        _ = timer.schedule_with_delay(
+            chrono::Duration::milliseconds(self.game.move_time.clone() as i64),
+            move || {
+                stop_bool.store(true, Ordering::Relaxed);
+                let _ignored = tx.send(());
+            },
+        );
+
         match self.game.find_move() {
             Some(m) => {
                 //let result: &mut Board = self.
@@ -150,6 +162,8 @@ impl Cli {
             }
             None => panic!("No valid move found"),
         }
+
+        rx.recv().unwrap();
     }
 
     fn uci(&self) {

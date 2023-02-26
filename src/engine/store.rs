@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_store() {
-        let g = Game::new("".to_string(), 10, Duration::new(10, 0));
+        let g = Game::new("".to_string(), 10, 10000);
         let mut store = Store::new();
 
         let result = store.get(5, &g.board);
