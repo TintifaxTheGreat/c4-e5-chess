@@ -1,7 +1,6 @@
+use chess::{Board, ChessMove};
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
-
-use chess::{Board, ChessMove};
 
 pub struct Item {
     depth: u16,
@@ -60,7 +59,6 @@ impl Store {
 mod tests {
     use super::*;
     use crate::engine::game::Game;
-    use std::time::Duration;
 
     #[test]
     fn test_store() {
@@ -80,16 +78,16 @@ mod tests {
         let (m, v, fresh) = store.get(5, &g.board).unwrap();
         assert_eq!(v, 300);
         assert_eq!(m.to_string(), "c2c4");
-        assert_eq!(fresh,true);
+        assert_eq!(fresh, true);
 
         let (m, _, fresh) = store.get(6, &g.board).unwrap();
         assert_eq!(m.to_string(), "c2c4");
-        assert_eq!(fresh,false);
+        assert_eq!(fresh, false);
 
         let (m, v, fresh) = store.get(4, &g.board).unwrap();
         assert_eq!(v, 300);
         assert_eq!(m.to_string(), "c2c4");
-        assert_eq!(fresh,true);
+        assert_eq!(fresh, true);
 
         store.put(
             5,
@@ -101,6 +99,6 @@ mod tests {
         let (m, v, fresh) = store.get(4, &g.board).unwrap();
         assert_eq!(v, 305);
         assert_eq!(m.to_string(), "e2e4");
-        assert_eq!(fresh,true);
+        assert_eq!(fresh, true);
     }
 }

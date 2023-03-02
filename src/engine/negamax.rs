@@ -1,13 +1,11 @@
-use std::mem;
-
-use chess::{Board, ChessMove, MoveGen, BoardStatus};
-
 use super::{
-    constants::{INIT_QUIET_DEPTH, PVS_DEPTH, MATE},
+    constants::{INIT_QUIET_DEPTH, MATE, PVS_DEPTH},
     evaluate::evaluate,
     move_gen::MoveGenPrime,
     store::Store,
 };
+use chess::{Board, BoardStatus, ChessMove, MoveGen};
+use std::mem;
 
 pub fn negamax(
     board: Board,
@@ -30,10 +28,10 @@ pub fn negamax(
                 let mut i = 0;
                 for c in &mut children.clone().into_iter() {
                     if c.0 == mm {
-                        children.swap(0,i);
+                        children.swap(0, i);
                         break;
                     }
-                    i+=1;
+                    i += 1;
                 }
             }
         }
@@ -44,8 +42,8 @@ pub fn negamax(
 
     if children.len() == 0 {
         if board.status() == BoardStatus::Checkmate {
-			// TODO store the mate value (?)
-			return (None, -MATE - i32::from(depth));
+            // TODO store the mate value (?)
+            return (None, -MATE - i32::from(depth));
         }
         return (best_move, 0);
     }

@@ -1,26 +1,31 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
 use chess::Board;
+use log::info;
 use std::{
     io::stdin,
-    str::SplitWhitespace,
-    sync::{mpsc::channel, Arc, atomic::Ordering},
+    mem,
+    str::{FromStr, SplitWhitespace},
+    sync::{atomic::Ordering, mpsc::channel},
 };
 use timer::Timer;
 
 pub struct Cli {
     game: Game,
+    tm: TimeManagement,
 }
 
 impl Cli {
     pub fn new() -> Cli {
         Cli {
             game: Default::default(),
+            tm: TimeManagement::default(),
         }
     }
 
     pub fn execute(&mut self) {
         loop {
+            info!("im in loop");
             let mut input = String::new();
             stdin().read_line(&mut input).unwrap();
             let mut words = input.trim().split_whitespace();
@@ -36,12 +41,12 @@ impl Cli {
                     self.uci();
                 }
 
-                "isReady" => {
+                "isready" => {
                     self.is_ready();
                 }
 
                 "position" => {
-                    self.position();
+                    self.position(args);
                 }
 
                 "go" => {
@@ -52,14 +57,36 @@ impl Cli {
                 _ => continue,
             }
         }
+        
     }
 
     fn is_ready(&self) {
         self.send_ready_ok();
     }
 
-    fn position(&self) {
-        //TODO
+    fn position(&mut self, mut args: SplitWhitespace) {
+        loop {
+            match args.next() {
+                Some(cmd) => match cmd {
+                    "fen" => match args.next() {
+                        Some(arg) => match arg {
+                            pos => match Board::from_str(pos) {
+                                Ok(b) => self.game.board = b,
+                                Err(_) => panic!("FEN not valid"),
+                            },
+                        },
+
+                        None => break,
+                    },
+
+                    // do nothing as game was already initialised with startposition
+                    "startpos" => {}
+
+                    _ => break,
+                },
+                None => break,
+            }
+        }
     }
 
     fn go(&mut self, mut args: SplitWhitespace) {
@@ -128,6 +155,7 @@ impl Cli {
                             Ok(a) => {
                                 self.game.move_time = a * 9 / 10;
                                 self.timer_start();
+                                return;
                             }
                             Err(_) => break,
                         },
@@ -139,6 +167,9 @@ impl Cli {
                 None => break,
             }
         }
+        self.tm.set_game_time(&mut self.game);
+        self.timer_start();
+
     }
 
     fn timer_start(&mut self) {
@@ -157,8 +188,13 @@ impl Cli {
 
         match self.game.find_move() {
             Some(m) => {
-                //let result: &mut Board = self.
-                //let _ = self.game.board.make_move(m, result);
+                let mut bresult = mem::MaybeUninit::<Board>::uninit();
+
+                unsafe {
+                    let _ = &self.game.board.make_move(m, &mut *bresult.as_mut_ptr());
+                }
+                //info!("im there");
+                //println!("bestmove %", m.to_string()); //TODO contunie herer
             }
             None => panic!("No valid move found"),
         }

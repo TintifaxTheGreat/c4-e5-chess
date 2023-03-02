@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 // Bitmaps
 
 pub const CB_CENTER: u64 = 0x00003C3C3C3C0000;
@@ -13,7 +11,7 @@ pub const CB_GOOD_QUEEN: u64 = 0x3c1800000000183c;
 pub const CB_BASE_LINE: u64 = 0xff000000000000ff;
 
 // FEN
-pub const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Search
 pub const MAX_INT: i32 = 1000000;

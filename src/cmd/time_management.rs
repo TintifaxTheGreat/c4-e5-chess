@@ -1,10 +1,6 @@
-use std::time::Duration;
-
-use chess::Color;
-
-use crate::engine::game::Game;
-
 use super::constants::*;
+use crate::engine::game::Game;
+use chess::Color;
 
 pub struct TimeManagement {
     pub white_time: u16,
@@ -15,7 +11,7 @@ pub struct TimeManagement {
 }
 
 impl TimeManagement {
-    fn set_game_time(&mut self, g: &mut Game) {
+    pub fn set_game_time(&mut self, g: &mut Game) {
         let time_for_all_moves: u16;
         let mut time_usage_percent = TIME_USAGE_PERCENT_DEFAULT;
 

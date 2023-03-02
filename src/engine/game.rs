@@ -1,10 +1,11 @@
 use super::{constants::*, store::Store};
 use crate::engine::negamax::negamax;
 use chess::{Board, ChessMove, MoveGen};
+use log::info;
 use std::{
     mem,
     str::FromStr,
-    sync::{atomic::{AtomicBool, Ordering}, Arc},
+    sync::{atomic::AtomicBool, Arc},
 };
 
 pub struct Game {
@@ -18,7 +19,7 @@ pub struct Game {
 
 impl Game {
     pub fn new(fen: String, max_depth: u16, move_time: u16) -> Self {
-        match Board::from_str(if fen.is_empty() { START_FEN } else { &fen }) {
+        match Board::from_str(if fen.is_empty() { FEN_START } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
                     INIT_MAX_DEPTH
@@ -97,7 +98,7 @@ impl Game {
             prior_values.sort_by(|a, b| b.1.cmp(&a.1));
 
             best_move = Some(prior_values[0].0.clone());
-            println!("best was: {}", prior_values[0].0.to_string());
+            info!("best was: {}", prior_values[0].0.to_string());
             let best_value = prior_values[0].1;
             if best_value > MATE_LEVEL {
                 break;
