@@ -9,6 +9,7 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
+    time::{Duration, SystemTime},
 };
 
 pub struct Game {
@@ -29,7 +30,7 @@ impl Game {
                 } else {
                     max_depth
                 },
-                board: board,
+                board,
                 playing: Arc::new(AtomicBool::new(true)),
                 move_time: if move_time == 0 {
                     DEFAULT_TIME
@@ -48,6 +49,8 @@ impl Game {
         let beta = MAX_INT;
         let mut current_depth: u16 = 0;
         let mut best_move: Option<ChessMove> = None;
+        let mut best_value: i32;
+        let stop_time = SystemTime::now() + Duration::from_millis(self.move_time);
 
         let mut moves = MoveGen::new_legal(&self.board);
 
@@ -79,6 +82,7 @@ impl Game {
                                     false,
                                     false,
                                     &self.playing,
+                                    stop_time,
                                 );
                                 prior_values[i] = (prior_values[i].0, -vv);
                             }
@@ -93,23 +97,21 @@ impl Game {
                                 false,
                                 false,
                                 &self.playing,
+                                stop_time,
                             );
                             prior_values[i] = (prior_values[i].0, -vv);
                         }
                     }
                 }
-                if !self.playing.load(Ordering::Relaxed) {
+                if (!self.playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
                     break 'main_loop;
-                } else {
-                    info!("Still pondering...");
                 }
             }
 
             prior_values.sort_by(|a, b| b.1.cmp(&a.1));
 
             best_move = Some(prior_values[0].0.clone());
-            // TODO remove //info!("best was: {}", prior_values[0].0.to_string());
-            let best_value = prior_values[0].1;
+            best_value = prior_values[0].1;
             if best_value > MATE_LEVEL {
                 break;
             }
@@ -118,15 +120,16 @@ impl Game {
             if current_depth > LATE_PRUNING_DEPTH {
                 let mut cut_index = prior_values.len();
                 for i in 0..prior_values.len() {
+                    info!("....{0} {1}", prior_values[i].0.to_string(), prior_values[i].1);
                     if prior_values[i].1 < best_value - LATE_PRUNING_THRESHOLD {
                         cut_index = i;
-                        // TODO log.Print("cut at ", i)
+                        info!("cut at {}", i);
                         break;
                     }
                 }
                 prior_values.truncate(cut_index);
             }
-
+            info!("Current Depth: {}", current_depth);
             current_depth += 1;
         }
         return best_move;

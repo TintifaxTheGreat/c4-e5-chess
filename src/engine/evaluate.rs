@@ -25,11 +25,11 @@ pub fn evaluate(b: &Board, moves_count: i32) -> i32 {
     let black_king = b.pieces(Piece::King).0 & b.color_combined(Color::Black).0;
 
     // Rules concerning pawns
+    value += (white_pawns.count_ones() * 190) as i32;
+    value -= (black_pawns.count_ones() * 200) as i32;
+
     value += ((white_pawns & CB_CENTER_0).count_ones() * 40) as i32;
     value -= ((black_pawns & CB_CENTER_0).count_ones() * 40) as i32;
-
-    value += (white_pawns.count_ones() * 40) as i32;
-    value -= (black_pawns.count_ones() * 40) as i32;
 
     // Rules concerning knights
     value += (white_knights.count_ones() * 590) as i32;
@@ -78,13 +78,12 @@ pub fn evaluate(b: &Board, moves_count: i32) -> i32 {
         value -= ((black_king & CB_SAFE_KING).count_ones() * 130) as i32;
     }
 
-    // Endgame rules
     let defending_king: u64;
     if b.side_to_move() == Color::White {
         defending_king = black_king;
+        value *= -1;
     } else {
         defending_king = white_king;
-        value *= -1;
     }
     if pieces_count < 8 {
         if value < 0 {

@@ -6,9 +6,7 @@ use std::{
     io::stdin,
     mem,
     str::{FromStr, SplitWhitespace},
-    sync::{atomic::Ordering, mpsc::channel},
 };
-use timer::Timer;
 
 pub struct Cli {
     game: Game,
@@ -128,7 +126,10 @@ impl Cli {
 
                     "binc" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => {info!("in binc");self.tm.black_inc = a}
+                            Ok(a) => {
+                                info!("in binc");
+                                self.tm.black_inc = a
+                            }
                             Err(_) => break,
                         },
                         None => break,
@@ -177,24 +178,8 @@ impl Cli {
     }
 
     fn timer_start(&mut self) {
-        let timer = Timer::new();
-        let (tx, rx) = channel();
-
-        self.game.playing.store(true, Ordering::Relaxed);
-        let stop_bool = self.game.playing.clone();
-        let _guard = timer.schedule_with_delay(
-            chrono::Duration::milliseconds(self.game.move_time.clone() as i64),
-            //chrono::Duration::seconds(10),
-            move || {
-                //info!("Game should stop NOW!!!!!");
-                //stop_bool.store(false, Ordering::Relaxed);
-                let _ignored = tx.send(());
-                //info!("Game should stop NOW!!!!!");
-            },
-        );
-        
-        info!("Enter search with time {}", self.game.move_time);
-
+        // timer not implemented
+        //info!("Enter search with time {}", self.game.move_time);
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -206,11 +191,6 @@ impl Cli {
             }
             None => error!("No valid move found"),
         }
-        rx.recv().unwrap();
-        info!("Now trying to stop the game");
-        self.game.playing.store(false, Ordering::Relaxed);
-        stop_bool.store(false, Ordering::Relaxed);
-
     }
 
     fn uci(&self) {
