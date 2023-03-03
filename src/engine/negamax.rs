@@ -5,7 +5,13 @@ use super::{
     store::Store,
 };
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
-use std::mem;
+use std::{
+    mem,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
 
 pub fn negamax(
     board: Board,
@@ -15,6 +21,7 @@ pub fn negamax(
     beta: i32,
     unsorted: bool,
     mut is_quiescence: bool,
+    playing: &Arc<AtomicBool>,
 ) -> (Option<ChessMove>, i32) {
     let mut best_move: Option<ChessMove> = None;
     let mut pvs = true;
@@ -87,6 +94,7 @@ pub fn negamax(
                     -alpha,
                     true,
                     is_quiescence,
+                    playing,
                 );
                 value *= -1;
             }
@@ -100,6 +108,7 @@ pub fn negamax(
                     -alpha,
                     true,
                     is_quiescence,
+                    playing,
                 );
                 value *= -1;
             }
@@ -113,6 +122,7 @@ pub fn negamax(
                         -alpha,
                         true,
                         is_quiescence,
+                        playing,
                     );
                     value *= -1;
                 }
@@ -128,6 +138,10 @@ pub fn negamax(
             best_move = value_move;
             pvs = false;
         }
+    }
+
+    if !playing.load(Ordering::Relaxed) {
+        return (None, 0);
     }
 
     if best_move.is_some() {

@@ -1,24 +1,27 @@
-use super::{constants::*, store::Store};
-use crate::engine::negamax::negamax;
+use super::{constants::*, negamax::negamax, store::Store};
+
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
     mem,
     str::FromStr,
-    sync::{atomic::AtomicBool, Arc},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
 };
 
 pub struct Game {
     pub max_depth: u16,
     pub board: Board,
-    pub move_time: u16, // in Milliseconds
-    pub move_number: u16,
+    pub move_time: u64, // in Milliseconds
+    pub move_number: u64,
     pub playing: Arc<AtomicBool>,
     //TODO board_history:
 }
 
 impl Game {
-    pub fn new(fen: String, max_depth: u16, move_time: u16) -> Self {
+    pub fn new(fen: String, max_depth: u16, move_time: u64) -> Self {
         match Board::from_str(if fen.is_empty() { FEN_START } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
@@ -54,7 +57,7 @@ impl Game {
 
         let mut prior_values: Vec<(ChessMove, i32)> = moves.map(|a| (a, 0)).collect();
 
-        while current_depth <= self.max_depth {
+        'main_loop: while current_depth <= self.max_depth {
             for i in 0..prior_values.len() {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
                 unsafe {
@@ -75,6 +78,7 @@ impl Game {
                                     -alpha,
                                     false,
                                     false,
+                                    &self.playing,
                                 );
                                 prior_values[i] = (prior_values[i].0, -vv);
                             }
@@ -88,17 +92,23 @@ impl Game {
                                 -alpha,
                                 false,
                                 false,
+                                &self.playing,
                             );
                             prior_values[i] = (prior_values[i].0, -vv);
                         }
                     }
+                }
+                if !self.playing.load(Ordering::Relaxed) {
+                    break 'main_loop;
+                } else {
+                    info!("Still pondering...");
                 }
             }
 
             prior_values.sort_by(|a, b| b.1.cmp(&a.1));
 
             best_move = Some(prior_values[0].0.clone());
-            info!("best was: {}", prior_values[0].0.to_string());
+            // TODO remove //info!("best was: {}", prior_values[0].0.to_string());
             let best_value = prior_values[0].1;
             if best_value > MATE_LEVEL {
                 break;

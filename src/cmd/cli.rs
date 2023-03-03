@@ -1,7 +1,7 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
 use chess::Board;
-use log::info;
+use log::{error, info};
 use std::{
     io::stdin,
     mem,
@@ -25,17 +25,21 @@ impl Cli {
 
     pub fn execute(&mut self) {
         loop {
-            info!("im in loop");
             let mut input = String::new();
             stdin().read_line(&mut input).unwrap();
+            let mut input_bak = input.clone();
+            input_bak.pop();
+            let input_bak_str = input_bak.as_str();
             let mut words = input.trim().split_whitespace();
             let option = words.next();
+
             match option {
                 Some(_) => {}
                 None => continue,
             }
             let command = option.unwrap();
             let args = words;
+            info!("| {}", input_bak_str);
             match command {
                 "uci" => {
                     self.uci();
@@ -54,10 +58,10 @@ impl Cli {
                 }
 
                 "quit" => return,
+
                 _ => continue,
             }
         }
-        
     }
 
     fn is_ready(&self) {
@@ -68,16 +72,17 @@ impl Cli {
         loop {
             match args.next() {
                 Some(cmd) => match cmd {
-                    "fen" => match args.next() {
-                        Some(arg) => match arg {
-                            pos => match Board::from_str(pos) {
-                                Ok(b) => self.game.board = b,
-                                Err(_) => panic!("FEN not valid"),
-                            },
-                        },
-
-                        None => break,
-                    },
+                    "fen" => {
+                        let fen: String = args.fold(String::new(), |acc, x| acc + x + " ");
+                        // info!("FEN:|{}|", fen.clone());
+                        match Board::from_str(fen.as_str()) {
+                            Ok(b) => self.game.board = b,
+                            Err(_) => {
+                                error!("FEN not valid");
+                            }
+                        }
+                        break;
+                    }
 
                     // do nothing as game was already initialised with startposition
                     "startpos" => {}
@@ -90,7 +95,6 @@ impl Cli {
     }
 
     fn go(&mut self, mut args: SplitWhitespace) {
-        let mut tm: TimeManagement = Default::default();
         loop {
             match args.next() {
                 Some(cmd) => match cmd {
@@ -100,7 +104,7 @@ impl Cli {
 
                     "wtime" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => tm.white_time = a,
+                            Ok(a) => self.tm.white_time = a,
                             Err(_) => break,
                         },
                         None => break,
@@ -108,7 +112,7 @@ impl Cli {
 
                     "btime" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => tm.black_time = a,
+                            Ok(a) => self.tm.black_time = a,
                             Err(_) => break,
                         },
                         None => break,
@@ -116,7 +120,7 @@ impl Cli {
 
                     "winc" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => tm.white_inc = a,
+                            Ok(a) => self.tm.white_inc = a,
                             Err(_) => break,
                         },
                         None => break,
@@ -124,7 +128,7 @@ impl Cli {
 
                     "binc" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => tm.black_inc = a,
+                            Ok(a) => {info!("in binc");self.tm.black_inc = a}
                             Err(_) => break,
                         },
                         None => break,
@@ -132,7 +136,7 @@ impl Cli {
 
                     "movestogo" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => tm.moves_to_go = a,
+                            Ok(a) => self.tm.moves_to_go = a,
                             Err(_) => break,
                         },
                         None => break,
@@ -151,7 +155,7 @@ impl Cli {
                     "mate" => {}
 
                     "movetime" => match args.next() {
-                        Some(arg) => match arg.parse::<u16>() {
+                        Some(arg) => match arg.parse::<u64>() {
                             Ok(a) => {
                                 self.game.move_time = a * 9 / 10;
                                 self.timer_start();
@@ -167,9 +171,9 @@ impl Cli {
                 None => break,
             }
         }
+        info!("im here");
         self.tm.set_game_time(&mut self.game);
         self.timer_start();
-
     }
 
     fn timer_start(&mut self) {
@@ -178,28 +182,35 @@ impl Cli {
 
         self.game.playing.store(true, Ordering::Relaxed);
         let stop_bool = self.game.playing.clone();
-        _ = timer.schedule_with_delay(
+        let _guard = timer.schedule_with_delay(
             chrono::Duration::milliseconds(self.game.move_time.clone() as i64),
+            //chrono::Duration::seconds(10),
             move || {
-                stop_bool.store(true, Ordering::Relaxed);
+                //info!("Game should stop NOW!!!!!");
+                //stop_bool.store(false, Ordering::Relaxed);
                 let _ignored = tx.send(());
+                //info!("Game should stop NOW!!!!!");
             },
         );
+        
+        info!("Enter search with time {}", self.game.move_time);
 
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
-
                 unsafe {
                     let _ = &self.game.board.make_move(m, &mut *bresult.as_mut_ptr());
                 }
-                //info!("im there");
-                //println!("bestmove %", m.to_string()); //TODO contunie herer
+                let result = format!("bestmove {}", m.to_string());
+                self.send_string(result.as_str());
             }
-            None => panic!("No valid move found"),
+            None => error!("No valid move found"),
         }
-
         rx.recv().unwrap();
+        info!("Now trying to stop the game");
+        self.game.playing.store(false, Ordering::Relaxed);
+        stop_bool.store(false, Ordering::Relaxed);
+
     }
 
     fn uci(&self) {
@@ -209,19 +220,24 @@ impl Cli {
     }
 
     fn send_id(&self) {
-        println!("id name C4E5R");
-        println!("id author Eugen Lindorfer");
+        self.send_string("id name C4E5R");
+        self.send_string("id author Eugen Lindorfer");
     }
 
     fn send_options(&self) {
-        println!("option"); //TODO extend this
+        self.send_string("option"); //TODO extend this
     }
 
     fn send_uci_ok(&self) {
-        println!("uciok");
+        self.send_string("uciok");
     }
 
     fn send_ready_ok(&self) {
-        println!("readyok");
+        self.send_string("readyok");
+    }
+
+    fn send_string(&self, s: &str) {
+        println!("{}", s);
+        info!("|   {}", s);
     }
 }

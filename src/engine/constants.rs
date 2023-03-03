@@ -14,8 +14,8 @@ pub const CB_BASE_LINE: u64 = 0xff000000000000ff;
 pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Search
-pub const MAX_INT: i32 = 1000000;
-pub const MIN_INT: i32 = -1000000;
+pub const MAX_INT: i32 = 1_000_000;
+pub const MIN_INT: i32 = -1_000_000;
 pub const INIT_MAX_DEPTH: u16 = 99;
 pub const INIT_QUIET_DEPTH: u16 = 1;
 pub const LATE_PRUNING_THRESHOLD: i32 = 60;
@@ -23,8 +23,8 @@ pub const LATE_PRUNING_DEPTH: u16 = 3;
 pub const PVS_DEPTH: u16 = 2;
 
 // Game
-pub const DEFAULT_TIME: u16 = 10000; // in Milliseconds
+pub const DEFAULT_TIME: u64 = 10_000; // in Milliseconds
 
 // Evaluation
-pub const MATE_LEVEL: i32 = 55000;
-pub const MATE: i32 = 60000;
+pub const MATE_LEVEL: i32 = 55_000;
+pub const MATE: i32 = 60_000;
