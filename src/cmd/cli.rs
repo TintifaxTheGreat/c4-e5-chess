@@ -1,14 +1,12 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
-use chess::Board;
+use chess::{Board, ChessMove};
 use log::{error, info};
 use std::{
     io::stdin,
     mem,
     str::{FromStr, SplitWhitespace},
-    sync::{atomic::Ordering, mpsc::channel},
 };
-use timer::Timer;
 
 pub struct Cli {
     game: Game,
@@ -73,19 +71,48 @@ impl Cli {
             match args.next() {
                 Some(cmd) => match cmd {
                     "fen" => {
-                        let fen: String = args.fold(String::new(), |acc, x| acc + x + " ");
-                        // info!("FEN:|{}|", fen.clone());
+                        let mut fen: String = "".to_string();
+                        for _ in 1..7 {
+                            match args.next() {
+                                Some(s) => {
+                                    fen = fen + s + " ";
+                                }
+                                None => {
+                                    error!("No FEN found");
+                                    return;
+                                }
+                            }
+                        }
                         match Board::from_str(fen.as_str()) {
                             Ok(b) => self.game.board = b,
                             Err(_) => {
                                 error!("FEN not valid");
+                                return;
                             }
                         }
-                        break;
                     }
 
                     // do nothing as game was already initialised with startposition
                     "startpos" => {}
+
+                    "moves" => loop {
+                        match args.next() {
+                            Some(move_string) => {
+                                let mut result = Board::default();
+                                match ChessMove::from_str(move_string) {
+                                    Ok(m) => {
+                                        self.game.board.make_move(m, &mut result);
+                                        self.game.board = result;
+                                    }
+                                    Err(_) => {
+                                        error!("Illegal move");
+                                        return;
+                                    }
+                                }
+                            }
+                            None => return,
+                        }
+                    },
 
                     _ => break,
                 },
@@ -128,7 +155,9 @@ impl Cli {
 
                     "binc" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => {info!("in binc");self.tm.black_inc = a}
+                            Ok(a) => {
+                                self.tm.black_inc = a
+                            }
                             Err(_) => break,
                         },
                         None => break,
@@ -158,8 +187,8 @@ impl Cli {
                         Some(arg) => match arg.parse::<u64>() {
                             Ok(a) => {
                                 self.game.move_time = a * 9 / 10;
-                                self.timer_start();
-                                return;
+                                //self.timer_start();
+                                //return;
                             }
                             Err(_) => break,
                         },
@@ -171,30 +200,13 @@ impl Cli {
                 None => break,
             }
         }
-        info!("im here");
         self.tm.set_game_time(&mut self.game);
         self.timer_start();
     }
 
     fn timer_start(&mut self) {
-        let timer = Timer::new();
-        let (tx, rx) = channel();
-
-        self.game.playing.store(true, Ordering::Relaxed);
-        let stop_bool = self.game.playing.clone();
-        let _guard = timer.schedule_with_delay(
-            chrono::Duration::milliseconds(self.game.move_time.clone() as i64),
-            //chrono::Duration::seconds(10),
-            move || {
-                //info!("Game should stop NOW!!!!!");
-                //stop_bool.store(false, Ordering::Relaxed);
-                let _ignored = tx.send(());
-                //info!("Game should stop NOW!!!!!");
-            },
-        );
-        
-        info!("Enter search with time {}", self.game.move_time);
-
+        // timer not implemented
+        //info!("Enter search with time {}", self.game.move_time);
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -206,11 +218,6 @@ impl Cli {
             }
             None => error!("No valid move found"),
         }
-        rx.recv().unwrap();
-        info!("Now trying to stop the game");
-        self.game.playing.store(false, Ordering::Relaxed);
-        stop_bool.store(false, Ordering::Relaxed);
-
     }
 
     fn uci(&self) {

@@ -10,7 +10,7 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    },
+    }, time::SystemTime,
 };
 
 pub fn negamax(
@@ -22,6 +22,7 @@ pub fn negamax(
     unsorted: bool,
     mut is_quiescence: bool,
     playing: &Arc<AtomicBool>,
+    stop_time: SystemTime,
 ) -> (Option<ChessMove>, i32) {
     let mut best_move: Option<ChessMove> = None;
     let mut pvs = true;
@@ -56,11 +57,10 @@ pub fn negamax(
     }
 
     if depth < 1 {
-        return (best_move, evaluate(&board, 15)); //TODO change this
+        return (best_move, evaluate(&board));
     }
 
     for c in &mut children.into_iter() {
-        //println!("{}", c.to_string());
         let mut value;
         let mut value_move: Option<ChessMove>;
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -95,6 +95,7 @@ pub fn negamax(
                     true,
                     is_quiescence,
                     playing,
+                    stop_time,
                 );
                 value *= -1;
             }
@@ -109,6 +110,7 @@ pub fn negamax(
                     true,
                     is_quiescence,
                     playing,
+                    stop_time,
                 );
                 value *= -1;
             }
@@ -123,6 +125,7 @@ pub fn negamax(
                         true,
                         is_quiescence,
                         playing,
+                        stop_time,
                     );
                     value *= -1;
                 }
@@ -140,7 +143,7 @@ pub fn negamax(
         }
     }
 
-    if !playing.load(Ordering::Relaxed) {
+    if (!playing.load(Ordering::Relaxed)) || ((SystemTime::now() >= stop_time)) {
         return (None, 0);
     }
 

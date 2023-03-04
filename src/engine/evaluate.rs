@@ -3,8 +3,9 @@ use super::{
     helpers::{half_open_files, open_files},
 };
 use chess::{Board, Color, Piece};
+use log::info;
 
-pub fn evaluate(b: &Board, moves_count: i32) -> i32 {
+pub fn evaluate(b: &Board) -> i32 {
     let mut value: i32 = 0;
     let pieces_count = b.combined().count();
 
@@ -25,18 +26,18 @@ pub fn evaluate(b: &Board, moves_count: i32) -> i32 {
     let black_king = b.pieces(Piece::King).0 & b.color_combined(Color::Black).0;
 
     // Rules concerning pawns
+    value += (white_pawns.count_ones() * 190) as i32;
+    value -= (black_pawns.count_ones() * 200) as i32;
+
     value += ((white_pawns & CB_CENTER_0).count_ones() * 40) as i32;
     value -= ((black_pawns & CB_CENTER_0).count_ones() * 40) as i32;
-
-    value += (white_pawns.count_ones() * 40) as i32;
-    value -= (black_pawns.count_ones() * 40) as i32;
 
     // Rules concerning knights
     value += (white_knights.count_ones() * 590) as i32;
     value -= (black_knights.count_ones() * 600) as i32;
 
-    value += ((white_knights & CB_BOARD_0).count_ones() * 20) as i32;
-    value -= ((black_knights & CB_BOARD_0).count_ones() * 20) as i32;
+    value -= ((white_knights & CB_BOARD_0).count_ones() * 20) as i32;
+    value += ((black_knights & CB_BOARD_0).count_ones() * 20) as i32;
 
     // Rules concerning bishops
     value += (white_bishops.count_ones() * 610) as i32;
@@ -56,14 +57,12 @@ pub fn evaluate(b: &Board, moves_count: i32) -> i32 {
     value += (white_queens.count_ones() * 1790) as i32;
     value -= (black_queens.count_ones() * 1800) as i32;
 
-    if moves_count < 12 {
-        value += ((white_queens & CB_GOOD_QUEEN).count_ones() * 120) as i32;
-        value -= ((black_queens & CB_GOOD_QUEEN).count_ones() * 120) as i32;
-    }
+    value -= ((white_queens & CB_CENTER).count_ones() * 30) as i32;
+    value += ((black_queens & CB_CENTER).count_ones() * 30) as i32;
 
     if pieces_count > 20 {
-        value -= ((white_knights & CB_BASE_LINE).count_ones() * 30) as i32;
-        value += ((black_knights & CB_BASE_LINE).count_ones() * 30) as i32;
+        value -= ((white_knights & CB_BASE_LINE).count_ones() * 40) as i32;
+        value += ((black_knights & CB_BASE_LINE).count_ones() * 40) as i32;
 
         value -= ((white_bishops & CB_BASE_LINE).count_ones() * 40) as i32;
         value += ((black_bishops & CB_BASE_LINE).count_ones() * 40) as i32;
@@ -71,19 +70,18 @@ pub fn evaluate(b: &Board, moves_count: i32) -> i32 {
         value += ((white_bishops & CB_GOOD_BISHOP).count_ones() * 20) as i32;
         value -= ((black_bishops & CB_GOOD_BISHOP).count_ones() * 20) as i32;
 
-        value -= ((white_queens & CB_CENTER).count_ones() * 30) as i32;
-        value += ((black_queens & CB_CENTER).count_ones() * 30) as i32;
+        value += ((white_queens & CB_GOOD_QUEEN).count_ones() * 30) as i32;
+        value -= ((black_queens & CB_GOOD_QUEEN).count_ones() * 30) as i32;
 
         value += ((white_king & CB_SAFE_KING).count_ones() * 130) as i32;
         value -= ((black_king & CB_SAFE_KING).count_ones() * 130) as i32;
     }
 
-    // Endgame rules
     let defending_king: u64;
     if b.side_to_move() == Color::White {
-        defending_king = black_king;
-    } else {
         defending_king = white_king;
+    } else {
+        defending_king = black_king;
         value *= -1;
     }
     if pieces_count < 8 {

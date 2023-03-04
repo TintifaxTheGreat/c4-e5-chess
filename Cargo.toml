@@ -9,3 +9,8 @@ timer = "0.2.0"
 chrono = "0.4.23"
 log = "0.4.17"
 simple-logging = "2.0.2"
+
+[profile.release]
+strip = true
+panic = "abort"
+
