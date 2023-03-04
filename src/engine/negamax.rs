@@ -57,7 +57,7 @@ pub fn negamax(
     }
 
     if depth < 1 {
-        return (best_move, evaluate(&board, 15)); //TODO change this
+        return (best_move, evaluate(&board));
     }
 
     for c in &mut children.into_iter() {

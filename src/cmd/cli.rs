@@ -1,6 +1,6 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
-use chess::Board;
+use chess::{Board, ChessMove};
 use log::{error, info};
 use std::{
     io::stdin,
@@ -71,19 +71,48 @@ impl Cli {
             match args.next() {
                 Some(cmd) => match cmd {
                     "fen" => {
-                        let fen: String = args.fold(String::new(), |acc, x| acc + x + " ");
-                        // info!("FEN:|{}|", fen.clone());
+                        let mut fen: String = "".to_string();
+                        for _ in 1..7 {
+                            match args.next() {
+                                Some(s) => {
+                                    fen = fen + s + " ";
+                                }
+                                None => {
+                                    error!("No FEN found");
+                                    return;
+                                }
+                            }
+                        }
                         match Board::from_str(fen.as_str()) {
                             Ok(b) => self.game.board = b,
                             Err(_) => {
                                 error!("FEN not valid");
+                                return;
                             }
                         }
-                        break;
                     }
 
                     // do nothing as game was already initialised with startposition
                     "startpos" => {}
+
+                    "moves" => loop {
+                        match args.next() {
+                            Some(move_string) => {
+                                let mut result = Board::default();
+                                match ChessMove::from_str(move_string) {
+                                    Ok(m) => {
+                                        self.game.board.make_move(m, &mut result);
+                                        self.game.board = result;
+                                    }
+                                    Err(_) => {
+                                        error!("Illegal move");
+                                        return;
+                                    }
+                                }
+                            }
+                            None => return,
+                        }
+                    },
 
                     _ => break,
                 },
@@ -127,7 +156,6 @@ impl Cli {
                     "binc" => match args.next() {
                         Some(arg) => match arg.parse() {
                             Ok(a) => {
-                                info!("in binc");
                                 self.tm.black_inc = a
                             }
                             Err(_) => break,
@@ -159,8 +187,8 @@ impl Cli {
                         Some(arg) => match arg.parse::<u64>() {
                             Ok(a) => {
                                 self.game.move_time = a * 9 / 10;
-                                self.timer_start();
-                                return;
+                                //self.timer_start();
+                                //return;
                             }
                             Err(_) => break,
                         },
@@ -172,7 +200,6 @@ impl Cli {
                 None => break,
             }
         }
-        info!("im here");
         self.tm.set_game_time(&mut self.game);
         self.timer_start();
     }
