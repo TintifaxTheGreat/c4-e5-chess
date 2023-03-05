@@ -1,6 +1,6 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
-use chess::{Board, ChessMove};
+use chess::{Board, ChessMove, Color};
 use log::{error, info};
 use std::{
     io::stdin,
@@ -40,11 +40,13 @@ impl Cli {
             info!("| {}", input_bak_str);
             match command {
                 "uci" => {
-                    self.uci();
+                    self.send_id();
+                    self.send_options();
+                    self.send_uci_ok();
                 }
 
                 "isready" => {
-                    self.is_ready();
+                    self.send_ready_ok();
                 }
 
                 "position" => {
@@ -62,20 +64,23 @@ impl Cli {
         }
     }
 
-    fn is_ready(&self) {
-        self.send_ready_ok();
-    }
-
     fn position(&mut self, mut args: SplitWhitespace) {
         loop {
             match args.next() {
                 Some(cmd) => match cmd {
                     "fen" => {
                         let mut fen: String = "".to_string();
-                        for _ in 1..7 {
+                        for i in 0..6 {
                             match args.next() {
                                 Some(s) => {
                                     fen = fen + s + " ";
+                                    if i == 5 {
+                                        // move count
+                                        match s.parse::<u64>() {
+                                            Ok(n) => self.game.move_number = n,
+                                            Err(_) => error!("No move number in FEN"),
+                                        }
+                                    }
                                 }
                                 None => {
                                     error!("No FEN found");
@@ -103,6 +108,9 @@ impl Cli {
                                     Ok(m) => {
                                         self.game.board.make_move(m, &mut result);
                                         self.game.board = result;
+                                        if self.game.board.side_to_move() == Color::Black {
+                                            self.game.move_number += 1;
+                                        }
                                     }
                                     Err(_) => {
                                         error!("Illegal move");
@@ -155,9 +163,7 @@ impl Cli {
 
                     "binc" => match args.next() {
                         Some(arg) => match arg.parse() {
-                            Ok(a) => {
-                                self.tm.black_inc = a
-                            }
+                            Ok(a) => self.tm.black_inc = a,
                             Err(_) => break,
                         },
                         None => break,
@@ -205,7 +211,6 @@ impl Cli {
     }
 
     fn timer_start(&mut self) {
-        // timer not implemented
         //info!("Enter search with time {}", self.game.move_time);
         match self.game.find_move() {
             Some(m) => {
@@ -218,12 +223,6 @@ impl Cli {
             }
             None => error!("No valid move found"),
         }
-    }
-
-    fn uci(&self) {
-        self.send_id();
-        self.send_options();
-        self.send_uci_ok();
     }
 
     fn send_id(&self) {

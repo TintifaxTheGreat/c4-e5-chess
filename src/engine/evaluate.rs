@@ -3,7 +3,6 @@ use super::{
     helpers::{half_open_files, open_files},
 };
 use chess::{Board, Color, Piece};
-use log::info;
 
 pub fn evaluate(b: &Board) -> i32 {
     let mut value: i32 = 0;
@@ -12,18 +11,21 @@ pub fn evaluate(b: &Board) -> i32 {
     let b_open_files = open_files(b);
     let b_half_open_files = half_open_files(b);
 
-    let white_pawns = b.pieces(Piece::Pawn).0 & b.color_combined(Color::White).0;
-    let black_pawns = b.pieces(Piece::Pawn).0 & b.color_combined(Color::Black).0;
-    let white_knights = b.pieces(Piece::Knight).0 & b.color_combined(Color::White).0;
-    let black_knights = b.pieces(Piece::Knight).0 & b.color_combined(Color::Black).0;
-    let white_bishops = b.pieces(Piece::Bishop).0 & b.color_combined(Color::White).0;
-    let black_bishops = b.pieces(Piece::Bishop).0 & b.color_combined(Color::Black).0;
-    let white_rooks = b.pieces(Piece::Rook).0 & b.color_combined(Color::White).0;
-    let black_rooks = b.pieces(Piece::Rook).0 & b.color_combined(Color::Black).0;
-    let white_queens = b.pieces(Piece::Queen).0 & b.color_combined(Color::White).0;
-    let black_queens = b.pieces(Piece::Queen).0 & b.color_combined(Color::Black).0;
-    let white_king = b.pieces(Piece::King).0 & b.color_combined(Color::White).0;
-    let black_king = b.pieces(Piece::King).0 & b.color_combined(Color::Black).0;
+    let white_figures = b.color_combined(Color::White).0;
+    let black_figures = b.color_combined(Color::Black).0;
+
+    let white_pawns = b.pieces(Piece::Pawn).0 & white_figures;
+    let black_pawns = b.pieces(Piece::Pawn).0 & black_figures;
+    let white_knights = b.pieces(Piece::Knight).0 & white_figures;
+    let black_knights = b.pieces(Piece::Knight).0 & black_figures;
+    let white_bishops = b.pieces(Piece::Bishop).0 & white_figures;
+    let black_bishops = b.pieces(Piece::Bishop).0 & black_figures;
+    let white_rooks = b.pieces(Piece::Rook).0 & white_figures;
+    let black_rooks = b.pieces(Piece::Rook).0 & black_figures;
+    let white_queens = b.pieces(Piece::Queen).0 & white_figures;
+    let black_queens = b.pieces(Piece::Queen).0 & black_figures;
+    let white_king = b.pieces(Piece::King).0 & white_figures;
+    let black_king = b.pieces(Piece::King).0 & black_figures;
 
     // Rules concerning pawns
     value += (white_pawns.count_ones() * 190) as i32;

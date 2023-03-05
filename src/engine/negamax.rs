@@ -69,9 +69,6 @@ pub fn negamax(
             let _ = &board.make_move(c.0, &mut *bresult.as_mut_ptr());
         }
 
-        // TODO add quiescence extension
-
-        //let new_depth = depth - 1; // TODO change this
         let mut new_depth: u16 = 0;
         if !unsorted && pvs {
             new_depth += PVS_DEPTH;

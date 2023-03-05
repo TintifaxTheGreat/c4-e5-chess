@@ -20,7 +20,7 @@ pub const INIT_MAX_DEPTH: u16 = 99;
 pub const INIT_QUIET_DEPTH: u16 = 1;
 pub const LATE_PRUNING_THRESHOLD: i32 = 60;
 pub const LATE_PRUNING_DEPTH: u16 = 3;
-pub const PVS_DEPTH: u16 = 2;
+pub const PVS_DEPTH: u16 = 2; // was 2
 
 // Game
 pub const DEFAULT_TIME: u64 = 10_000; // in Milliseconds
