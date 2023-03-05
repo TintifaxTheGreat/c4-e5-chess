@@ -120,7 +120,11 @@ impl Game {
             if current_depth > LATE_PRUNING_DEPTH {
                 let mut cut_index = prior_values.len();
                 for i in 0..prior_values.len() {
-                    info!("....{0} {1}", prior_values[i].0.to_string(), prior_values[i].1);
+                    info!(
+                        "....{0} {1}",
+                        prior_values[i].0.to_string(),
+                        prior_values[i].1
+                    );
                     if prior_values[i].1 < best_value - LATE_PRUNING_THRESHOLD {
                         cut_index = i;
                         info!("cut at {}", i);
@@ -222,15 +226,26 @@ mod tests {
         }
 
         // Test 6
-
         let mut g = Game::new(
             "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
-            4, //TODO 4
+            4,
             5000,
         );
         match g.find_move() {
             Some(m) => assert_eq!(m.to_string(), "e5e1"),
             None => panic!("No move found"),
         }
+        /*
+        // Test 7
+        let mut g = Game::new(
+            "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
+            8,
+            5000,
+        );
+        match g.find_move() {
+            Some(m) => assert_eq!(m.to_string(), "h3g5"),
+            None => panic!("No move found"),
+        }
+        */
     }
 }
