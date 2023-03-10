@@ -3,7 +3,7 @@ use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 
 pub struct Item {
-    depth: u16,
+    depth: i16,
     value: i32,
     chessmove: ChessMove,
 }
@@ -17,7 +17,7 @@ impl Store {
         Self { h: HashMap::new() }
     }
 
-    pub fn put(&mut self, depth: u16, value: i32, b: &Board, chessmove: &ChessMove) {
+    pub fn put(&mut self, depth: i16, value: i32, b: &Board, chessmove: &ChessMove) {
         let key = *b;
         let item = Item {
             depth,
@@ -28,7 +28,7 @@ impl Store {
             Occupied(val) => {
                 let old_item = val.get();
                 if old_item.depth <= depth {
-                    _ = &self.h.insert(key, item); //TODO check if we should use an update method
+                    _ = &self.h.insert(key, item);
                 }
             }
             Vacant(_) => {
@@ -37,7 +37,7 @@ impl Store {
         }
     }
 
-    pub fn get(&mut self, depth: u16, b: &Board) -> Option<(ChessMove, i32, bool)> {
+    pub fn get(&mut self, depth: i16, b: &Board) -> Option<(ChessMove, i32, bool)> {
         // TODO why do we have to use mutable? --> Change implementation!
 
         let key = *b;

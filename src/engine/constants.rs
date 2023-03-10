@@ -16,11 +16,14 @@ pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 // Search
 pub const MAX_INT: i32 = 1_000_000;
 pub const MIN_INT: i32 = -1_000_000;
-pub const INIT_MAX_DEPTH: u16 = 99;
-pub const INIT_QUIET_DEPTH: u16 = 1;
-pub const LATE_PRUNING_THRESHOLD: i32 = 60;
-pub const LATE_PRUNING_DEPTH: u16 = 3;
-pub const PVS_DEPTH: u16 = 2; // was 2
+pub const INIT_MAX_DEPTH: i16 = 99;
+pub const INIT_QUIET_DEPTH: i16 = 1;
+pub const LATE_PRUNING_PERCENT: i32 = 85;
+pub const LATE_PRUNING_INDEX: usize = 2;
+pub const LATE_PRUNING_DEPTH_START: i16 = 4; // TODO was 4  here is a problem
+pub const LATE_MOVE_REDUCTION_DEPTH_START: i16 = 4; // TODO was 4
+pub const LATE_PRUNING_DEPTH_REDUCTION: i16 = 2;
+pub const PVS_DEPTH: i16 = 2; // was 2
 
 // Game
 pub const DEFAULT_TIME: u64 = 10_000; // in Milliseconds

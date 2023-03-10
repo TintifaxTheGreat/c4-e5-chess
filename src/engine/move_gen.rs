@@ -2,6 +2,7 @@ use chess::{Board, ChessMove, MoveGen, EMPTY};
 
 pub trait MoveGenPrime {
     fn get_legal_sorted(board: &Board) -> Vec<(ChessMove, bool)>;
+    fn count_legal(board: &Board) -> usize;
 }
 
 impl MoveGenPrime for MoveGen {
@@ -21,5 +22,9 @@ impl MoveGenPrime for MoveGen {
         }
 
         result
+    }
+
+    fn count_legal(board: &Board) -> usize {
+        MoveGen::new_legal(&board).count()
     }
 }
