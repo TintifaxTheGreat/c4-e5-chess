@@ -3,6 +3,7 @@ use super::{constants::*, negamax::negamax, store::Store};
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
+    cmp::max,
     mem,
     str::FromStr,
     sync::{
@@ -13,7 +14,7 @@ use std::{
 };
 
 pub struct Game {
-    pub max_depth: u16,
+    pub max_depth: i16,
     pub board: Board,
     pub move_time: u64, // in Milliseconds
     pub move_number: u64,
@@ -22,7 +23,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(fen: String, max_depth: u16, move_time: u64) -> Self {
+    pub fn new(fen: String, max_depth: i16, move_time: u64) -> Self {
         match Board::from_str(if fen.is_empty() { FEN_START } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
@@ -47,9 +48,10 @@ impl Game {
         let mut store: Store = Store::new();
         let alpha = MIN_INT;
         let beta = MAX_INT;
-        let mut current_depth: u16 = 0;
+        let mut current_depth: i16 = 0;
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: i32;
+        let mut worst_value: i32;
         let stop_time = SystemTime::now() + Duration::from_millis(self.move_time);
 
         let mut moves = MoveGen::new_legal(&self.board);
@@ -58,11 +60,14 @@ impl Game {
             return Some(moves.next().unwrap());
         }
 
-        let mut prior_values: Vec<(ChessMove, i32)> = moves.map(|a| (a, 0)).collect();
+        let mut prior_values: Vec<(ChessMove, i32, bool)> = moves.map(|a| (a, 0, true)).collect();
 
         'main_loop: while current_depth <= self.max_depth {
+            let mut search: bool;
+            let mut search_depth: i16;
             for i in 0..prior_values.len() {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
+
                 unsafe {
                     let _ = &self
                         .board
@@ -70,25 +75,38 @@ impl Game {
                     match store.get(current_depth, &*bresult.as_ptr()) {
                         Some((_mm, vv, fresh)) => {
                             if fresh {
-                                prior_values[i] = (prior_values[i].0, -vv);
+                                prior_values[i] = (prior_values[i].0, -vv, true);
+                                search = false;
                             } else {
-                                // TODO make this more elegant
-                                let (_mm, vv) = negamax(
-                                    *bresult.as_ptr(),
-                                    &mut store,
-                                    current_depth,
-                                    -beta,
-                                    -alpha,
-                                    false,
-                                    false,
-                                    &self.playing,
-                                    stop_time,
-                                );
-                                prior_values[i] = (prior_values[i].0, -vv);
+                                search = true;
                             }
                         }
                         None => {
-                            let (_mm, vv) = negamax(
+                            search = true;
+                        }
+                    }
+                }
+
+                if search {
+                    search_depth = if prior_values[i].2 {
+                        current_depth
+                    } else {
+                        max(0, current_depth - LATE_PRUNING_DEPTH_REDUCTION)
+                    };
+                    unsafe {
+                        let (mut _mm, mut vv) = negamax(
+                            *bresult.as_ptr(),
+                            &mut store,
+                            search_depth,
+                            -beta,
+                            -alpha,
+                            false,
+                            false,
+                            &self.playing,
+                            stop_time,
+                        );
+                        if !prior_values[i].2 && (-vv > alpha) {
+                            (_mm, vv) = negamax(
                                 *bresult.as_ptr(),
                                 &mut store,
                                 current_depth,
@@ -99,11 +117,13 @@ impl Game {
                                 &self.playing,
                                 stop_time,
                             );
-                            prior_values[i] = (prior_values[i].0, -vv);
                         }
+                        prior_values[i] = (prior_values[i].0, -vv, true);
                     }
                 }
+
                 if (!self.playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
+                    println!("time is not over");
                     break 'main_loop;
                 }
             }
@@ -116,22 +136,38 @@ impl Game {
                 break;
             }
 
-            // late pruning
-            if current_depth > LATE_PRUNING_DEPTH {
-                let mut cut_index = prior_values.len();
-                for i in 0..prior_values.len() {
-                    info!(
-                        "....{0} {1}",
-                        prior_values[i].0.to_string(),
-                        prior_values[i].1
-                    );
-                    if prior_values[i].1 < best_value - LATE_PRUNING_THRESHOLD {
-                        cut_index = i;
-                        info!("cut at {}", i);
-                        break;
+            // Late move pruning
+            if current_depth >= LATE_PRUNING_DEPTH_START {
+                let moves_count = prior_values.len();
+                let mut cut_index = moves_count;
+                worst_value = prior_values[moves_count - 1].1;
+                if worst_value < best_value {
+                    for i in 2..moves_count {
+                        if (100 * (prior_values[i].1 - worst_value) / (best_value - worst_value))
+                            < LATE_PRUNING_PERCENT
+                        {
+                            cut_index = i;
+                            info!("cut at {}", i);
+                            break;
+                        }
                     }
+                    prior_values.truncate(cut_index);
                 }
-                prior_values.truncate(cut_index);
+            }
+
+            // Late move reduction
+            if current_depth >= LATE_MOVE_REDUCTION_DEPTH_START {
+                for i in 0..prior_values.len() {
+                    if i >= LATE_PRUNING_INDEX {
+                        prior_values[i].2 = false;
+                    }
+                    info!(
+                        "....{0} {1} {2}",
+                        prior_values[i].0.to_string(),
+                        prior_values[i].1,
+                        prior_values[i].2,
+                    );
+                }
             }
             info!("Current Depth: {}", current_depth);
             current_depth += 1;

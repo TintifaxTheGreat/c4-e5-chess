@@ -16,7 +16,7 @@ use std::{
 pub fn negamax(
     board: Board,
     store: &mut Store,
-    depth: u16,
+    depth: i16,
     mut alpha: i32,
     beta: i32,
     unsorted: bool,
@@ -69,7 +69,7 @@ pub fn negamax(
             let _ = &board.make_move(c.0, &mut *bresult.as_mut_ptr());
         }
 
-        let mut new_depth: u16 = 0;
+        let mut new_depth: i16 = 0;
         if !unsorted && pvs {
             new_depth += PVS_DEPTH;
         } else {
