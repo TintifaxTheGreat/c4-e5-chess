@@ -1,5 +1,5 @@
 use super::time_management::TimeManagement;
-use crate::engine::game::Game;
+use crate::engine::game::{Game, MoveNumber};
 use chess::{Board, ChessMove, Color};
 use log::{error, info};
 use std::{
@@ -76,7 +76,7 @@ impl Cli {
                                     fen = fen + s + " ";
                                     if i == 5 {
                                         // move count
-                                        match s.parse::<u64>() {
+                                        match s.parse::<MoveNumber>() {
                                             Ok(n) => self.game.move_number = n,
                                             Err(_) => error!("No move number in FEN"),
                                         }

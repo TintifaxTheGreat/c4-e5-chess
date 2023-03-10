@@ -13,17 +13,22 @@ use std::{
     time::{Duration, SystemTime},
 };
 
+pub type Depth = i16;
+pub type MoveTime = u64;
+pub type MoveNumber = u64;
+pub type MoveScore = i32;
+
 pub struct Game {
-    pub max_depth: i16,
+    pub max_depth: Depth,
     pub board: Board,
-    pub move_time: u64, // in Milliseconds
-    pub move_number: u64,
+    pub move_time: MoveTime, // in Milliseconds
+    pub move_number: MoveNumber,
     pub playing: Arc<AtomicBool>,
     //TODO board_history:
 }
 
 impl Game {
-    pub fn new(fen: String, max_depth: i16, move_time: u64) -> Self {
+    pub fn new(fen: String, max_depth: Depth, move_time: MoveTime) -> Self {
         match Board::from_str(if fen.is_empty() { FEN_START } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
@@ -48,10 +53,10 @@ impl Game {
         let mut store: Store = Store::new();
         let alpha = MIN_INT;
         let beta = MAX_INT;
-        let mut current_depth: i16 = 0;
+        let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
-        let mut best_value: i32;
-        let mut worst_value: i32;
+        let mut best_value: MoveScore;
+        let mut worst_value: MoveScore;
         let stop_time = SystemTime::now() + Duration::from_millis(self.move_time);
 
         let mut moves = MoveGen::new_legal(&self.board);
@@ -60,11 +65,11 @@ impl Game {
             return Some(moves.next().unwrap());
         }
 
-        let mut prior_values: Vec<(ChessMove, i32, bool)> = moves.map(|a| (a, 0, true)).collect();
+        let mut prior_values: Vec<(ChessMove, MoveScore, bool)> = moves.map(|a| (a, 0, true)).collect();
 
         'main_loop: while current_depth <= self.max_depth {
             let mut search: bool;
-            let mut search_depth: i16;
+            let mut search_depth: Depth;
             for i in 0..prior_values.len() {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
 

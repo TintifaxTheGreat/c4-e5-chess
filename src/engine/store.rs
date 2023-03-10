@@ -2,9 +2,11 @@ use chess::{Board, ChessMove};
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 
+use super::game::{Depth, MoveScore};
+
 pub struct Item {
-    depth: i16,
-    value: i32,
+    depth: Depth,
+    value: MoveScore,
     chessmove: ChessMove,
 }
 
@@ -17,7 +19,7 @@ impl Store {
         Self { h: HashMap::new() }
     }
 
-    pub fn put(&mut self, depth: i16, value: i32, b: &Board, chessmove: &ChessMove) {
+    pub fn put(&mut self, depth: Depth, value: MoveScore, b: &Board, chessmove: &ChessMove) {
         let key = *b;
         let item = Item {
             depth,
@@ -37,7 +39,7 @@ impl Store {
         }
     }
 
-    pub fn get(&mut self, depth: i16, b: &Board) -> Option<(ChessMove, i32, bool)> {
+    pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(ChessMove, MoveScore, bool)> {
         // TODO why do we have to use mutable? --> Change implementation!
 
         let key = *b;
