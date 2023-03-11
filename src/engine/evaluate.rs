@@ -1,6 +1,7 @@
 use super::{
     constants::*,
-    helpers::{half_open_files, open_files}, game::MoveScore,
+    game::MoveScore,
+    helpers::{half_open_files, kings_distance, open_files, defending_kings_moves_count},
 };
 use chess::{Board, Color, Piece};
 
@@ -87,21 +88,17 @@ pub fn evaluate(b: &Board) -> MoveScore {
         value *= -1;
     }
     if pieces_count < 8 {
-        if value < 0 {
-            // TODO value += distance(b.White.Kings, b.Black.Kings) * 20
-            // TODO value += countFiguresMoves(b, bbDefendingKing) * 10
-            value += ((defending_king & CB_CENTER_0).count_ones() * 80) as MoveScore;
-            value += ((defending_king & CB_CENTER_1).count_ones() * 40) as MoveScore;
-            value += ((defending_king & CB_BOARD_1).count_ones() * 10) as MoveScore;
-            value -= ((defending_king & CB_BOARD_0).count_ones() * 50) as MoveScore;
-        } else {
-            // TODO value -= distance(b.White.Kings, b.Black.Kings) * 20
-            // TODO value -= countFiguresMoves(b, bbDefendingKing) * 10
-            value -= ((defending_king & CB_CENTER_0).count_ones() * 80) as MoveScore;
-            value -= ((defending_king & CB_CENTER_1).count_ones() * 40) as MoveScore;
-            value -= ((defending_king & CB_BOARD_1).count_ones() * 10) as MoveScore;
-            value += ((defending_king & CB_BOARD_0).count_ones() * 50) as MoveScore;
+        let mut kings_value: MoveScore = kings_distance(b) * 10;
+        kings_value += defending_kings_moves_count(b) as MoveScore * 10;
+        kings_value += ((defending_king & CB_CENTER_0).count_ones() * 80) as MoveScore;
+        kings_value += ((defending_king & CB_CENTER_1).count_ones() * 40) as MoveScore;
+        kings_value += ((defending_king & CB_BOARD_1).count_ones() * 10) as MoveScore;
+        kings_value -= ((defending_king & CB_BOARD_0).count_ones() * 50) as MoveScore;
+
+        if value > 0 {
+            kings_value *= -1;
         }
+        value += kings_value;
     }
     return value;
 }

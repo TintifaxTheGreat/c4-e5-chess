@@ -1,8 +1,9 @@
 use super::{
     constants::{INIT_QUIET_DEPTH, MATE, PVS_DEPTH},
     evaluate::evaluate,
+    game::{Depth, MoveScore},
     move_gen::MoveGenPrime,
-    store::Store, game::{Depth, MoveScore},
+    store::Store,
 };
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
 use std::{
@@ -10,7 +11,8 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    }, time::SystemTime,
+    },
+    time::SystemTime,
 };
 
 pub fn negamax(
@@ -27,6 +29,10 @@ pub fn negamax(
     let mut best_move: Option<ChessMove> = None;
     let mut pvs = true;
     let mut children: Vec<(ChessMove, bool)> = Vec::new();
+
+    if (!playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
+        return (None, 0);
+    }
 
     match store.get(depth, &board) {
         Some((mm, v, fresh)) => {
@@ -138,10 +144,6 @@ pub fn negamax(
             best_move = value_move;
             pvs = false;
         }
-    }
-
-    if (!playing.load(Ordering::Relaxed)) || ((SystemTime::now() >= stop_time)) {
-        return (None, 0);
     }
 
     if best_move.is_some() {
