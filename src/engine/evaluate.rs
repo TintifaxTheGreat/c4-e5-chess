@@ -1,7 +1,7 @@
 use super::{
     constants::*,
-    game::MoveScore,
-    helpers::{half_open_files, kings_distance, open_files, defending_kings_moves_count},
+    helpers::{defending_kings_moves_count, half_open_files, kings_distance, open_files},
+    types::*,
 };
 use chess::{Board, Color, Piece};
 

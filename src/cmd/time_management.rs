@@ -1,9 +1,8 @@
-use std::cmp::{max, min};
-
 use super::constants::*;
-use crate::engine::game::{Game, MoveNumber, MoveTime};
+use crate::engine::{game::Game, types::*};
 use chess::Color;
 use log::info;
+use std::cmp::{max, min};
 
 pub struct TimeManagement {
     pub white_time: MoveTime,

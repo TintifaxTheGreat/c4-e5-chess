@@ -1,5 +1,5 @@
 use super::time_management::TimeManagement;
-use crate::engine::game::{Game, MoveNumber};
+use crate::engine::{game::Game, types::*};
 use chess::{Board, ChessMove, Color};
 use log::{error, info};
 use std::{

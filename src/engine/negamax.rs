@@ -1,9 +1,9 @@
 use super::{
-    constants::{INIT_QUIET_DEPTH, MATE, PVS_DEPTH},
+    constants::{CAPTURE_DEPTH_INCREMENT, MATE, PVS_DEPTH},
     evaluate::evaluate,
-    game::{Depth, MoveScore},
     move_gen::MoveGenPrime,
     store::Store,
+    types::*,
 };
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
 use std::{
@@ -22,117 +22,76 @@ pub fn negamax(
     mut alpha: MoveScore,
     beta: MoveScore,
     unsorted: bool,
-    mut is_quiescence: bool,
     playing: &Arc<AtomicBool>,
     stop_time: SystemTime,
 ) -> (Option<ChessMove>, MoveScore) {
     let mut best_move: Option<ChessMove> = None;
-    let mut pvs = true;
-    let mut children: Vec<(ChessMove, bool)> = Vec::new();
+    let mut children: Vec<AnnotatedMove> = Vec::new();
+    let mut new_depth: Depth;
 
     if (!playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
         return (None, 0);
     }
 
     match store.get(depth, &board) {
-        Some((mm, v, fresh)) => {
+        Some((mv, v, fresh)) => {
             if fresh {
-                return (Some(mm), v);
+                return (Some(mv), v);
             } else {
-                let mut i = 0;
-                for c in &mut children.clone().into_iter() {
-                    if c.0 == mm {
-                        children.swap(0, i);
-                        break;
+                if unsorted {
+                    let mut i = 0;
+                    for c in &mut children.iter() {
+                        if c.mv == mv {
+                            children.swap(0, i);
+                            break;
+                        }
+                        i += 1;
                     }
-                    i += 1;
                 }
             }
         }
-        None => children = MoveGen::get_legal_sorted(&board),
+        None => children = MoveGen::get_legal_sorted(&board, false),
     }
 
     // TODO consider board history
 
     if children.len() == 0 {
         if board.status() == BoardStatus::Checkmate {
-            // TODO store the mate value (?)
-            return (None, -MATE - MoveScore::from(depth));
+            return (None, -MATE - i32::from(depth));
         }
-        return (best_move, 0);
+        return (None, 0);
     }
 
     if depth < 1 {
-        return (best_move, evaluate(&board));
+        return (None, evaluate(&board));
     }
 
-    for c in &mut children.into_iter() {
+    for child in &mut children.into_iter() {
         let mut value;
-        let mut value_move: Option<ChessMove>;
+        let value_move: Option<ChessMove>;
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
 
         unsafe {
-            let _ = &board.make_move(c.0, &mut *bresult.as_mut_ptr());
+            let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
         }
 
-        let mut new_depth: Depth = 0;
-        if !unsorted && pvs {
-            new_depth += PVS_DEPTH;
-        } else {
-            if depth == 1 && c.1 && !is_quiescence {
-                is_quiescence = true;
-                new_depth = depth + INIT_QUIET_DEPTH - 1; // TODO change this
-            } else {
-                new_depth = depth - 1;
-            }
+        new_depth = depth - 1;
+        if new_depth == 0 && child.capture {
+            new_depth = CAPTURE_DEPTH_INCREMENT;
         }
 
-        if pvs {
-            unsafe {
-                (value_move, value) = negamax(
-                    *bresult.as_ptr(),
-                    store,
-                    new_depth,
-                    -beta,
-                    -alpha,
-                    true,
-                    is_quiescence,
-                    playing,
-                    stop_time,
-                );
-                value *= -1;
-            }
-        } else {
-            unsafe {
-                (value_move, value) = negamax(
-                    *bresult.as_ptr(),
-                    store,
-                    new_depth,
-                    -alpha - 1,
-                    -alpha,
-                    true,
-                    is_quiescence,
-                    playing,
-                    stop_time,
-                );
-                value *= -1;
-            }
-            if value > alpha {
-                unsafe {
-                    (value_move, value) = negamax(
-                        *bresult.as_ptr(),
-                        store,
-                        new_depth,
-                        -beta,
-                        -alpha,
-                        true,
-                        is_quiescence,
-                        playing,
-                        stop_time,
-                    );
-                    value *= -1;
-                }
-            }
+        unsafe {
+            (value_move, value) = negamax(
+                *bresult.as_ptr(),
+                store,
+                depth-1,
+                -beta,
+                -alpha,
+                true,
+                playing,
+                stop_time,
+            );
+            value *= -1;
         }
 
         if value >= beta {
@@ -142,7 +101,6 @@ pub fn negamax(
         if value > alpha {
             alpha = value;
             best_move = value_move;
-            pvs = false;
         }
     }
 

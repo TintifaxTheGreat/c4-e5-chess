@@ -1,4 +1,4 @@
-use super::{constants::*, negamax::negamax, store::Store};
+use super::{constants::*, negamax::negamax, store::Store, types::*};
 
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
@@ -12,17 +12,6 @@ use std::{
     },
     time::{Duration, SystemTime},
 };
-
-pub type Depth = i16;
-pub type MoveTime = u64;
-pub type MoveNumber = u64;
-pub type MoveScore = i32;
-
-pub struct ScoredMove {
-    mv: ChessMove,
-    sc: MoveScore,
-    full: bool,
-}
 
 pub struct Game {
     pub max_depth: Depth,
@@ -122,7 +111,6 @@ impl Game {
                             -beta,
                             -alpha,
                             false,
-                            false,
                             &self.playing,
                             stop_time,
                         );
@@ -133,7 +121,6 @@ impl Game {
                                 current_depth,
                                 -beta,
                                 -alpha,
-                                false,
                                 false,
                                 &self.playing,
                                 stop_time,
@@ -148,7 +135,7 @@ impl Game {
                 }
 
                 if (!self.playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
-                    println!("time is not over");
+                    println!("Time has expired");
                     break 'main_loop;
                 }
             }
@@ -158,6 +145,7 @@ impl Game {
             best_move = Some(prior_values[0].mv.clone());
             best_value = prior_values[0].sc;
             if best_value > MATE_LEVEL {
+                info!("Mate level was reached.");
                 break;
             }
 
@@ -186,14 +174,18 @@ impl Game {
                     if i >= LATE_PRUNING_INDEX {
                         prior_values[i].full = false;
                     }
-                    info!(
-                        "....{0} {1} {2}",
-                        prior_values[i].mv.to_string(),
-                        prior_values[i].sc,
-                        prior_values[i].full,
-                    );
                 }
             }
+
+            for i in 0..prior_values.len() {
+                info!(
+                    "....{0} {1} {2}",
+                    prior_values[i].mv.to_string(),
+                    prior_values[i].sc,
+                    prior_values[i].full,
+                );
+            }
+
             info!("Current Depth: {}", current_depth);
             current_depth += 1;
         }
@@ -271,7 +263,7 @@ mod tests {
         // Test 4
         let mut g = Game::new(
             "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
-            4,
+            6,
             5000,
         );
         match g.find_move() {

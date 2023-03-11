@@ -1,4 +1,4 @@
-use crate::engine::game::{MoveTime, MoveNumber};
+use crate::engine::types::*;
 
 // Time Management
 pub const MIN_MOVE_TIME: MoveTime = 200;
