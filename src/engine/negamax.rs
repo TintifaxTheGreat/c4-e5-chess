@@ -1,6 +1,7 @@
 use super::{
     constants::{INIT_QUIET_DEPTH, MATE, PVS_DEPTH},
     evaluate::evaluate,
+    game::{Depth, MoveScore},
     move_gen::MoveGenPrime,
     store::Store,
 };
@@ -10,23 +11,28 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    }, time::SystemTime,
+    },
+    time::SystemTime,
 };
 
 pub fn negamax(
     board: Board,
     store: &mut Store,
-    depth: i16,
-    mut alpha: i32,
-    beta: i32,
+    depth: Depth,
+    mut alpha: MoveScore,
+    beta: MoveScore,
     unsorted: bool,
     mut is_quiescence: bool,
     playing: &Arc<AtomicBool>,
     stop_time: SystemTime,
-) -> (Option<ChessMove>, i32) {
+) -> (Option<ChessMove>, MoveScore) {
     let mut best_move: Option<ChessMove> = None;
     let mut pvs = true;
     let mut children: Vec<(ChessMove, bool)> = Vec::new();
+
+    if (!playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
+        return (None, 0);
+    }
 
     match store.get(depth, &board) {
         Some((mm, v, fresh)) => {
@@ -51,7 +57,7 @@ pub fn negamax(
     if children.len() == 0 {
         if board.status() == BoardStatus::Checkmate {
             // TODO store the mate value (?)
-            return (None, -MATE - i32::from(depth));
+            return (None, -MATE - MoveScore::from(depth));
         }
         return (best_move, 0);
     }
@@ -69,7 +75,7 @@ pub fn negamax(
             let _ = &board.make_move(c.0, &mut *bresult.as_mut_ptr());
         }
 
-        let mut new_depth: i16 = 0;
+        let mut new_depth: Depth = 0;
         if !unsorted && pvs {
             new_depth += PVS_DEPTH;
         } else {
@@ -138,10 +144,6 @@ pub fn negamax(
             best_move = value_move;
             pvs = false;
         }
-    }
-
-    if (!playing.load(Ordering::Relaxed)) || ((SystemTime::now() >= stop_time)) {
-        return (None, 0);
     }
 
     if best_move.is_some() {
