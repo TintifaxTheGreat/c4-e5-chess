@@ -1,11 +1,12 @@
 use super::{
-    constants::{CAPTURE_DEPTH_INCREMENT, MATE, PVS_DEPTH},
+    constants::{CAPTURE_DEPTH_INCREMENT, MATE, MATE_LEVEL, PVS_DEPTH},
     evaluate::evaluate,
     move_gen::MoveGenPrime,
     store::Store,
     types::*,
 };
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
+use log::info;
 use std::{
     mem,
     sync::{
@@ -76,15 +77,15 @@ pub fn negamax(
         }
 
         new_depth = depth - 1;
-        if new_depth == 0 && child.capture {
-            new_depth = CAPTURE_DEPTH_INCREMENT;
-        }
+        //if new_depth == 0 && child.capture && !unsorted {
+        //    new_depth = CAPTURE_DEPTH_INCREMENT;
+        //}
 
         unsafe {
             (value_move, value) = negamax(
                 *bresult.as_ptr(),
                 store,
-                depth-1,
+                depth-1, // TODO should be new_depth, but this is buggy
                 -beta,
                 -alpha,
                 true,
@@ -94,8 +95,12 @@ pub fn negamax(
             value *= -1;
         }
 
+        if value > MATE_LEVEL {
+            return (value_move, value);
+        }
+
         if value >= beta {
-            return (best_move, beta);
+            return (value_move, value); // TODO this was changed - bug?
         }
 
         if value > alpha {

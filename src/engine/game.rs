@@ -1,5 +1,6 @@
-use super::{constants::*, negamax::negamax, store::Store, types::*};
+use crate::engine::negascout::negascout;
 
+use super::{constants::*, store::Store, types::*};
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
@@ -101,27 +102,25 @@ impl Game {
                     search_depth = if prior_values[i].full {
                         current_depth
                     } else {
-                        max(0, current_depth - LATE_PRUNING_DEPTH_REDUCTION)
+                        max(0, current_depth - LATE_MOVE_REDUCTION_DEPTH)
                     };
                     unsafe {
-                        let (mut _mm, mut vv) = negamax(
+                        let mut vv = negascout(
                             *bresult.as_ptr(),
                             &mut store,
                             search_depth,
                             -beta,
                             -alpha,
-                            false,
                             &self.playing,
                             stop_time,
                         );
                         if !prior_values[i].full && (-vv > alpha) {
-                            (_mm, vv) = negamax(
+                            vv = negascout(
                                 *bresult.as_ptr(),
                                 &mut store,
                                 current_depth,
                                 -beta,
                                 -alpha,
-                                false,
                                 &self.playing,
                                 stop_time,
                             );
@@ -201,6 +200,8 @@ impl Default for Game {
 
 #[cfg(test)]
 mod tests {
+    use log::LevelFilter;
+
     use super::*;
     use std::str::FromStr;
 
@@ -231,75 +232,83 @@ mod tests {
 
     #[test]
     fn test_play() {
-        // Test 1
-        let mut g = Game::new(
-            "r1b2k1r/pppq3p/2np1p2/8/2B2B2/8/PPP3PP/4RR1K w - - 0 1".to_string(),
-            4,
-            5000,
-        );
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "f4h6"),
-            None => panic!("No move found"),
-        }
+        match simple_logging::log_to_file("/home/eugen/work/rust/c4e5r/test.log", LevelFilter::Info)
+        {
+            Ok(_) => {
+                //  Test 1
+                let mut g = Game::new(
+                    "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
+                    4,
+                    5000,
+                );
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "f1h1"),
+                    None => panic!("No move found"),
+                }
+                // 
 
-        // Test 2
-        let mut g = Game::new(
-            "1rb4r/pkPp3p/1b1P3n/1Q6/N3Pp2/8/P1P3PP/7K w - - 1 1".to_string(),
-            4,
-            5000,
-        );
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "b5d5"),
-            None => panic!("No move found"),
-        }
 
-        // Test 3
-        let mut g = Game::new("8/2Q5/8/6q1/2K5/8/8/7k b - - 0 1".to_string(), 4, 5000);
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "g5c1"),
-            None => panic!("No move found"),
-        }
+                //  Test 2
+                let mut g = Game::new(
+                    "r1b2k1r/pppq3p/2np1p2/8/2B2B2/8/PPP3PP/4RR1K w - - 0 1".to_string(),
+                    4,
+                    5000,
+                );
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "f4h6"),
+                    None => panic!("No move found"),
+                }
 
-        // Test 4
-        let mut g = Game::new(
-            "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
-            6,
-            5000,
-        );
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "f1h1"),
-            None => panic!("No move found"),
-        }
+                //  Test 3
+                let mut g = Game::new(
+                    "1rb4r/pkPp3p/1b1P3n/1Q6/N3Pp2/8/P1P3PP/7K w - - 1 1".to_string(),
+                    4,
+                    5000,
+                );
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "b5d5"),
+                    None => panic!("No move found"),
+                }
 
-        // Test 5
-        let mut g = Game::new("8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1".to_string(), 4, 5000);
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "c4h4"),
-            None => panic!("No move found"),
-        }
+                // Test 4
+                let mut g = Game::new("8/2Q5/8/6q1/2K5/8/8/7k b - - 0 1".to_string(), 4, 5000);
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "g5c1"),
+                    None => panic!("No move found"),
+                }
 
-        // Test 6
-        let mut g = Game::new(
-            "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
-            4,
-            5000,
-        );
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "e5e1"),
-            None => panic!("No move found"),
-        }
+                // Test 5
+                let mut g = Game::new("8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1".to_string(), 4, 5000);
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "c4h4"),
+                    None => panic!("No move found"),
+                }
 
-        /* This test is flaky
-        // Test 7
-        let mut g = Game::new(
-            "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
-            8,
-            5000,
-        );
-        match g.find_move() {
-            Some(m) => assert_eq!(m.to_string(), "h3g5"),
-            None => panic!("No move found"),
+                // Test 6
+                let mut g = Game::new(
+                    "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1".to_string(),
+                    4,
+                    5000,
+                );
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "e5e1"),
+                    None => panic!("No move found"),
+                }
+
+                /*  Test 7
+                let mut g = Game::new(
+                    "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
+                    8,
+                    5000,
+                );
+                match g.find_move() {
+                    Some(m) => assert_eq!(m.to_string(), "h3g5"),
+                    None => panic!("No move found"),
+                }
+                */
+            }
+
+            Err(_) => panic!("Can't open logfile."),
         }
-         */
     }
 }
