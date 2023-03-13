@@ -1,14 +1,12 @@
 use super::{
-    constants::{CAPTURE_DEPTH_INCREMENT, MATE, MATE_LEVEL, PVS_DEPTH, MIN_INT},
+    constants::{MATE, MATE_LEVEL, MIN_INT},
     evaluate::evaluate,
     move_gen::MoveGenPrime,
     store::Store,
     types::*,
 };
-use chess::{Board, BoardStatus, ChessMove, MoveGen};
-use log::info;
+use chess::{Board, BoardStatus, MoveGen};
 use std::{
-    cmp::max,
     mem,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -25,6 +23,7 @@ pub fn negascout(
     beta: MoveScore,
     playing: &Arc<AtomicBool>,
     stop_time: SystemTime,
+    node_count: &mut u64,
 ) -> MoveScore {
     let children: Vec<AnnotatedMove>;
     let (mut alpha_1, mut beta_1, mut score): (MoveScore, MoveScore, MoveScore);
@@ -54,9 +53,11 @@ pub fn negascout(
     }
 
     if depth < 1 {
+        *node_count += 1;
         return evaluate(&board);
     }
 
+    let mut best_move = children[0].clone().mv;
     (alpha_1, beta_1) = (MIN_INT, beta);
     for (i, child) in &mut children.iter().enumerate() {
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -73,6 +74,7 @@ pub fn negascout(
                 -alpha_1,
                 playing,
                 stop_time,
+                node_count,
             );
         }
 
@@ -90,20 +92,23 @@ pub fn negascout(
                     -score,
                     playing,
                     stop_time,
+                    node_count,
                 );
             }
         }
-        alpha_1 = max(alpha_1, score);
+        if score > alpha_1 {
+            alpha_1 = score;
+            best_move = child.mv;
+        }
 
         if alpha_1 >= beta {
+            store.put(depth - 1, alpha, &board, &best_move);
             return alpha_1;
-            // TODO store this
         }
 
         beta_1 = alpha_1 + 1;
     }
 
-    //store.put(depth - 1, alpha, &board, &alpha_1_move.unwrap());
-
+    store.put(depth - 1, alpha, &board, &best_move);
     return alpha_1;
 }

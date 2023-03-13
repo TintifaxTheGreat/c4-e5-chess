@@ -219,6 +219,7 @@ impl Cli {
                     let _ = &self.game.board.make_move(m, &mut *bresult.as_mut_ptr());
                 }
                 let result = format!("bestmove {}", m.to_string());
+                info!("{} nodes examined.", self.game.nodes_count);
                 self.send_string(result.as_str());
             }
             None => error!("No valid move found"),

@@ -20,6 +20,7 @@ pub struct Game {
     pub move_time: MoveTime, // in Milliseconds
     pub move_number: MoveNumber,
     pub playing: Arc<AtomicBool>,
+    pub nodes_count: u64,
     //TODO board_history:
 }
 
@@ -40,6 +41,7 @@ impl Game {
                     move_time
                 },
                 move_number: 0,
+                nodes_count: 0,
             },
             Err(_) => panic!("FEN not valid"),
         }
@@ -65,7 +67,7 @@ impl Game {
             .map(|mv| ScoredMove {
                 mv,
                 sc: 0,
-                full: true,
+                incr: true,
             })
             .collect();
 
@@ -85,7 +87,7 @@ impl Game {
                                 prior_values[i] = ScoredMove {
                                     mv: prior_values[i].mv,
                                     sc: -vv,
-                                    full: true,
+                                    incr: true,
                                 };
                                 search = false;
                             } else {
@@ -99,10 +101,10 @@ impl Game {
                 }
 
                 if search {
-                    search_depth = if prior_values[i].full {
+                    search_depth = if prior_values[i].incr {
                         current_depth
                     } else {
-                        max(0, current_depth - LATE_MOVE_REDUCTION_DEPTH)
+                        max(0, current_depth + BEST_MOVE_INCREASE_DEPTH)
                     };
                     unsafe {
                         let mut vv = negascout(
@@ -113,8 +115,9 @@ impl Game {
                             -alpha,
                             &self.playing,
                             stop_time,
+                            &mut self.nodes_count,
                         );
-                        if !prior_values[i].full && (-vv > alpha) {
+                        if !prior_values[i].incr && (-vv > alpha) {
                             vv = negascout(
                                 *bresult.as_ptr(),
                                 &mut store,
@@ -123,12 +126,13 @@ impl Game {
                                 -alpha,
                                 &self.playing,
                                 stop_time,
+                                &mut self.nodes_count,
                             );
                         }
                         prior_values[i] = ScoredMove {
                             mv: prior_values[i].mv,
                             sc: -vv,
-                            full: true,
+                            incr: true,
                         };
                     }
                 }
@@ -167,11 +171,11 @@ impl Game {
                 }
             }
 
-            // Late move reduction
-            if current_depth >= LATE_MOVE_REDUCTION_DEPTH_START {
+            // Best move increase
+            if current_depth >= BEST_MOVE_INCREASE_DEPTH_AT {
                 for i in 0..prior_values.len() {
-                    if i >= LATE_PRUNING_INDEX {
-                        prior_values[i].full = false;
+                    if i <= BEST_MOVE_INCREASE_DEPTH_INDEX {
+                        prior_values[i].incr = false;
                     }
                 }
             }
@@ -181,7 +185,7 @@ impl Game {
                     "....{0} {1} {2}",
                     prior_values[i].mv.to_string(),
                     prior_values[i].sc,
-                    prior_values[i].full,
+                    prior_values[i].incr,
                 );
             }
 
@@ -295,7 +299,7 @@ mod tests {
                     None => panic!("No move found"),
                 }
 
-                /*  Test 7
+                /*   Test 7
                 let mut g = Game::new(
                     "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
                     8,

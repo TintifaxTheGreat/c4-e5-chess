@@ -8,7 +8,7 @@ pub type MoveScore = i32;
 pub struct ScoredMove {
     pub mv: ChessMove,
     pub sc: MoveScore,
-    pub full: bool,
+    pub incr: bool,
 }
 
 #[derive(Clone, Copy)]
