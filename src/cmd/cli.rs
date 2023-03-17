@@ -212,6 +212,7 @@ impl Cli {
 
     fn timer_start(&mut self) {
         //info!("Enter search with time {}", self.game.move_time);
+        self.game.nodes_count = 0;
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();

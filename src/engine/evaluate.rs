@@ -4,6 +4,7 @@ use super::{
     types::*,
 };
 use chess::{Board, Color, Piece};
+use log::info;
 
 pub fn evaluate(b: &Board) -> MoveScore {
     let mut value: MoveScore = 0;

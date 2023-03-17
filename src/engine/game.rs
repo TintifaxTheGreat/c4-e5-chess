@@ -1,6 +1,5 @@
-use crate::engine::negascout::negascout;
-
 use super::{constants::*, store::Store, types::*};
+use crate::engine::negamax;
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
@@ -107,7 +106,7 @@ impl Game {
                         max(0, current_depth + BEST_MOVE_INCREASE_DEPTH)
                     };
                     unsafe {
-                        let mut vv = negascout(
+                        let mut vv = negamax::negamax(
                             *bresult.as_ptr(),
                             &mut store,
                             search_depth,
@@ -118,7 +117,7 @@ impl Game {
                             &mut self.nodes_count,
                         );
                         if !prior_values[i].incr && (-vv > alpha) {
-                            vv = negascout(
+                            vv = negamax::negamax(
                                 *bresult.as_ptr(),
                                 &mut store,
                                 current_depth,
@@ -147,10 +146,10 @@ impl Game {
 
             best_move = Some(prior_values[0].mv.clone());
             best_value = prior_values[0].sc;
-            if best_value > MATE_LEVEL {
-                info!("Mate level was reached.");
-                break;
-            }
+            //if best_value > MATE_LEVEL { // TODO this caused issues
+            //    info!("Mate level was reached. Best move was {}", best_move.unwrap().to_string());
+            //    break;
+            //}
 
             // Late move pruning
             if current_depth >= LATE_PRUNING_DEPTH_START {
@@ -239,18 +238,16 @@ mod tests {
         match simple_logging::log_to_file("/home/eugen/work/rust/c4e5r/test.log", LevelFilter::Info)
         {
             Ok(_) => {
-                //  Test 1
+                // Test 1
                 let mut g = Game::new(
                     "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
-                    4,
-                    5000,
+                    6,
+                    20000,
                 );
                 match g.find_move() {
                     Some(m) => assert_eq!(m.to_string(), "f1h1"),
                     None => panic!("No move found"),
                 }
-                // 
-
 
                 //  Test 2
                 let mut g = Game::new(
@@ -299,7 +296,7 @@ mod tests {
                     None => panic!("No move found"),
                 }
 
-                /*   Test 7
+                
                 let mut g = Game::new(
                     "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
                     8,
@@ -309,7 +306,7 @@ mod tests {
                     Some(m) => assert_eq!(m.to_string(), "h3g5"),
                     None => panic!("No move found"),
                 }
-                */
+                
             }
 
             Err(_) => panic!("Can't open logfile."),

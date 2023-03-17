@@ -1,7 +1,8 @@
 use super::{
     constants::{MATE, MATE_LEVEL, MIN_INT},
-    evaluate::evaluate,
     move_gen::MoveGenPrime,
+    quiesce::quiesce,
+    evaluate::evaluate,
     store::Store,
     types::*,
 };
@@ -16,7 +17,8 @@ use std::{
 };
 
 pub fn negascout(
-    board: Board,
+    board: 
+    Board,
     store: &mut Store,
     depth: Depth,
     alpha: MoveScore,
@@ -33,13 +35,8 @@ pub fn negascout(
     }
 
     match store.get(depth, &board) {
-        Some((mv, v, fresh)) => {
-            if fresh {
-                return v;
-            } else {
-                children = MoveGen::get_legal_sorted(&board, false, Some(mv));
-            }
-        }
+        Some((_, v, true)) => return v,
+        Some((mv, _, false)) => children = MoveGen::get_legal_sorted(&board, false, Some(mv)),
         None => children = MoveGen::get_legal_sorted(&board, false, None),
     }
 
@@ -54,7 +51,15 @@ pub fn negascout(
 
     if depth < 1 {
         *node_count += 1;
-        return evaluate(&board);
+        //return evaluate(&board);
+        return quiesce(
+            board,
+            alpha,
+            beta,
+            playing,
+            stop_time,
+            node_count,
+        );
     }
 
     let mut best_move = children[0].clone().mv;
