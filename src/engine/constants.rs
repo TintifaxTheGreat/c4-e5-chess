@@ -18,11 +18,8 @@ pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 pub const MAX_INT: MoveScore = 1_000_000;
 pub const MIN_INT: MoveScore = -1_000_000;
 pub const INIT_MAX_DEPTH: Depth = 99;
-pub const LATE_PRUNING_PERCENT: MoveScore = 50;
+pub const LATE_PRUNING_PERCENT: MoveScore = 75; //TODO was 60
 pub const LATE_PRUNING_DEPTH_START: Depth = 4; //TODO was 4
-pub const BEST_MOVE_INCREASE_DEPTH_AT: Depth = 4; //TODO was 4
-pub const BEST_MOVE_INCREASE_DEPTH_INDEX: usize = 1;
-pub const BEST_MOVE_INCREASE_DEPTH: Depth = 2;
 
 // Game
 pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds

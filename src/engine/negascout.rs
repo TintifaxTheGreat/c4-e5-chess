@@ -83,10 +83,6 @@ pub fn negascout(
             );
         }
 
-        if score > MATE_LEVEL {
-            return score;
-        }
-
         if i > 1 && depth > 1 && score > alpha_1 && score < beta {
             unsafe {
                 alpha_1 = -negascout(

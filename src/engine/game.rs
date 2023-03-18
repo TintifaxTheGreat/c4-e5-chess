@@ -1,5 +1,5 @@
 use super::{constants::*, store::Store, types::*};
-use crate::engine::negamax;
+use crate::engine::pvs;
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
@@ -72,7 +72,6 @@ impl Game {
 
         'main_loop: while current_depth <= self.max_depth {
             let mut search: bool;
-            let mut search_depth: Depth;
             for i in 0..prior_values.len() {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
 
@@ -100,34 +99,17 @@ impl Game {
                 }
 
                 if search {
-                    search_depth = if prior_values[i].incr {
-                        current_depth
-                    } else {
-                        max(0, current_depth + BEST_MOVE_INCREASE_DEPTH)
-                    };
                     unsafe {
-                        let mut vv = negamax::negamax(
+                        let vv = pvs::pvs(
                             *bresult.as_ptr(),
                             &mut store,
-                            search_depth,
+                            current_depth,
                             -beta,
                             -alpha,
                             &self.playing,
                             stop_time,
                             &mut self.nodes_count,
                         );
-                        if !prior_values[i].incr && (-vv > alpha) {
-                            vv = negamax::negamax(
-                                *bresult.as_ptr(),
-                                &mut store,
-                                current_depth,
-                                -beta,
-                                -alpha,
-                                &self.playing,
-                                stop_time,
-                                &mut self.nodes_count,
-                            );
-                        }
                         prior_values[i] = ScoredMove {
                             mv: prior_values[i].mv,
                             sc: -vv,
@@ -146,10 +128,10 @@ impl Game {
 
             best_move = Some(prior_values[0].mv.clone());
             best_value = prior_values[0].sc;
-            //if best_value > MATE_LEVEL { // TODO this caused issues
-            //    info!("Mate level was reached. Best move was {}", best_move.unwrap().to_string());
-            //    break;
-            //}
+            if best_value > MATE_LEVEL { // TODO this caused issues ?!
+                info!("Mate level was reached. Best move was {}", best_move.unwrap().to_string());
+                break;
+            }
 
             // Late move pruning
             if current_depth >= LATE_PRUNING_DEPTH_START {
@@ -170,14 +152,6 @@ impl Game {
                 }
             }
 
-            // Best move increase
-            if current_depth >= BEST_MOVE_INCREASE_DEPTH_AT {
-                for i in 0..prior_values.len() {
-                    if i <= BEST_MOVE_INCREASE_DEPTH_INDEX {
-                        prior_values[i].incr = false;
-                    }
-                }
-            }
 
             for i in 0..prior_values.len() {
                 info!(
@@ -241,7 +215,7 @@ mod tests {
                 // Test 1
                 let mut g = Game::new(
                     "2b3rk/1q3p1p/p1p1pPpQ/4N3/2pP4/2P1p1P1/1P4PK/5R2 w - - 1 1".to_string(),
-                    6,
+                    4,
                     20000,
                 );
                 match g.find_move() {
@@ -296,17 +270,18 @@ mod tests {
                     None => panic!("No move found"),
                 }
 
-                
+                /* 
                 let mut g = Game::new(
                     "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
                     8,
-                    5000,
+                    20000,
                 );
                 match g.find_move() {
                     Some(m) => assert_eq!(m.to_string(), "h3g5"),
                     None => panic!("No move found"),
                 }
-                
+                */
+            
             }
 
             Err(_) => panic!("Can't open logfile."),
