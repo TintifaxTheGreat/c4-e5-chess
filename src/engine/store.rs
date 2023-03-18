@@ -1,8 +1,7 @@
+use super::types::*;
 use chess::{Board, ChessMove};
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
-
-use super::game::{Depth, MoveScore};
 
 pub struct Item {
     depth: Depth,

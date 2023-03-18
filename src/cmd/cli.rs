@@ -1,5 +1,5 @@
 use super::time_management::TimeManagement;
-use crate::engine::game::{Game, MoveNumber};
+use crate::engine::{game::Game, types::*};
 use chess::{Board, ChessMove, Color};
 use log::{error, info};
 use std::{
@@ -212,6 +212,7 @@ impl Cli {
 
     fn timer_start(&mut self) {
         //info!("Enter search with time {}", self.game.move_time);
+        self.game.nodes_count = 0;
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -219,6 +220,7 @@ impl Cli {
                     let _ = &self.game.board.make_move(m, &mut *bresult.as_mut_ptr());
                 }
                 let result = format!("bestmove {}", m.to_string());
+                info!("{} nodes examined.", self.game.nodes_count);
                 self.send_string(result.as_str());
             }
             None => error!("No valid move found"),

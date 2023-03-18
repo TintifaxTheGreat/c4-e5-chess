@@ -1,4 +1,4 @@
-use super::game::MoveScore;
+use super::types::*;
 use chess::{Board, ChessMove, Color, MoveGen, Piece};
 use std::cmp::max;
 

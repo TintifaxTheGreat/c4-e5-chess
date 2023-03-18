@@ -1,7 +1,6 @@
+use super::types::*;
+
 // Bitmaps
-
-use super::game::{Depth, MoveTime, MoveScore};
-
 pub const CB_CENTER: u64 = 0x00003C3C3C3C0000;
 pub const CB_BOARD_0: u64 = 0xff818181818181ff;
 pub const CB_BOARD_1: u64 = 0x007e424242427e00;
@@ -19,13 +18,8 @@ pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 pub const MAX_INT: MoveScore = 1_000_000;
 pub const MIN_INT: MoveScore = -1_000_000;
 pub const INIT_MAX_DEPTH: Depth = 99;
-pub const INIT_QUIET_DEPTH: Depth = 1;
-pub const LATE_PRUNING_PERCENT: MoveScore = 75;
-pub const LATE_PRUNING_INDEX: usize = 2;
-pub const LATE_PRUNING_DEPTH_START: Depth = 4;
-pub const LATE_MOVE_REDUCTION_DEPTH_START: Depth = 4;
-pub const LATE_PRUNING_DEPTH_REDUCTION: Depth = 2;
-pub const PVS_DEPTH: Depth = 2;
+pub const LATE_PRUNING_PERCENT: MoveScore = 75; //TODO was 60
+pub const LATE_PRUNING_DEPTH_START: Depth = 4; //TODO was 4
 
 // Game
 pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds
