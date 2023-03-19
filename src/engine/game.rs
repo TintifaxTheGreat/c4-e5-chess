@@ -9,7 +9,6 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    time::{Duration, SystemTime},
 };
 
 pub struct Game {
@@ -53,7 +52,6 @@ impl Game {
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore;
         let mut worst_value: MoveScore;
-        let stop_time = SystemTime::now() + Duration::from_millis(self.move_time);
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
         let mut moves = MoveGen::new_legal(&self.board);
 
@@ -61,23 +59,19 @@ impl Game {
             return Some(moves.next().unwrap());
         }
 
-        let mut prior_values: Vec<ScoredMove> = moves
-            .map(|mv| ScoredMove {
-                mv,
-                sc: 0,
-                incr: true,
-            })
-            .collect();
+        let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
 
         'main_loop: while current_depth <= self.max_depth {
             for i in 0..prior_values.len() {
-                if (!self.playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
-                    println!("Time has expired");
+                if !self.playing.load(Ordering::Relaxed) {
+                    info!("Time has expired");
                     break 'main_loop;
                 }
 
                 unsafe {
-                    let _ = self.board.make_move(prior_values[i].mv, &mut *bresult.as_mut_ptr());
+                    let _ = self
+                        .board
+                        .make_move(prior_values[i].mv, &mut *bresult.as_mut_ptr());
                 }
                 unsafe {
                     prior_values[i].sc = -pvs::pvs(
@@ -87,7 +81,6 @@ impl Game {
                         -beta,
                         -alpha,
                         &self.playing,
-                        stop_time,
                         &mut self.nodes_count,
                     )
                 }
@@ -126,10 +119,9 @@ impl Game {
 
             for i in 0..prior_values.len() {
                 info!(
-                    "....{0} {1} {2}",
+                    "....{0} {1}",
                     prior_values[i].mv.to_string(),
                     prior_values[i].sc,
-                    prior_values[i].incr,
                 );
             }
 

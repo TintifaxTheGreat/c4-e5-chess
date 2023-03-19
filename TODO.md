@@ -1,5 +1,5 @@
 
-* Repair timer (threads!)
+* Fix issues w. pvs
 * Consider 3x repetitions
 * time mgmt consider moves to go
 * Configuration (env?)

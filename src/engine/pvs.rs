@@ -1,4 +1,4 @@
-use super::{constants::MATE, evaluate::evaluate, move_gen::MoveGenPrime, store::Store, types::*, quiesce};
+use super::{constants::MATE, evaluate::evaluate, move_gen::MoveGenPrime, store::Store, types::*};
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
 use std::{
     mem,
@@ -6,7 +6,6 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    time::SystemTime,
 };
 
 pub fn pvs(
@@ -16,7 +15,6 @@ pub fn pvs(
     mut alpha: MoveScore,
     beta: MoveScore,
     playing: &Arc<AtomicBool>,
-    stop_time: SystemTime,
     node_count: &mut u64,
 ) -> MoveScore {
     let mut best_move: Option<ChessMove> = None;
@@ -24,7 +22,7 @@ pub fn pvs(
     let mut value;
     let mut temp: i32;
 
-    if (!playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
+    if !playing.load(Ordering::Relaxed) {
         return 0;
     }
 
@@ -64,7 +62,6 @@ pub fn pvs(
             -beta,
             -alpha,
             playing,
-            stop_time,
             node_count,
         )
     }
@@ -91,7 +88,6 @@ pub fn pvs(
                 -alpha - 1,
                 -alpha,
                 playing,
-                stop_time,
                 node_count,
             )
         }
@@ -106,7 +102,6 @@ pub fn pvs(
                         -beta,
                         -temp,
                         playing,
-                        stop_time,
                         node_count,
                     )
                 }
