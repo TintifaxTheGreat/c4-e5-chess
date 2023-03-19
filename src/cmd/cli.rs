@@ -29,37 +29,36 @@ impl Cli {
             input_bak.pop();
             let input_bak_str = input_bak.as_str();
             let mut words = input.trim().split_whitespace();
-            let option = words.next();
 
-            match option {
-                Some(_) => {}
+            match words.next() {
+                Some(command) => {
+                    let args = words;
+                    info!("| {}", input_bak_str);
+                    match command {
+                        "uci" => {
+                            self.send_id();
+                            self.send_options();
+                            self.send_uci_ok();
+                        }
+
+                        "isready" => {
+                            self.send_ready_ok();
+                        }
+
+                        "position" => {
+                            self.position(args);
+                        }
+
+                        "go" => {
+                            self.go(args);
+                        }
+
+                        "quit" => return,
+
+                        _ => continue,
+                    }
+                }
                 None => continue,
-            }
-            let command = option.unwrap();
-            let args = words;
-            info!("| {}", input_bak_str);
-            match command {
-                "uci" => {
-                    self.send_id();
-                    self.send_options();
-                    self.send_uci_ok();
-                }
-
-                "isready" => {
-                    self.send_ready_ok();
-                }
-
-                "position" => {
-                    self.position(args);
-                }
-
-                "go" => {
-                    self.go(args);
-                }
-
-                "quit" => return,
-
-                _ => continue,
             }
         }
     }

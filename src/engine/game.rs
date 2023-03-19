@@ -3,7 +3,6 @@ use crate::engine::pvs;
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
-    cmp::max,
     mem,
     str::FromStr,
     sync::{
@@ -128,12 +127,15 @@ impl Game {
 
             best_move = Some(prior_values[0].mv.clone());
             best_value = prior_values[0].sc;
-            if best_value > MATE_LEVEL { // TODO this caused issues ?!
-                info!("Mate level was reached. Best move was {}", best_move.unwrap().to_string());
+            if best_value > MATE_LEVEL {
+                info!(
+                    "Mate level was reached. Best move was {}",
+                    best_move.unwrap().to_string()
+                );
                 break;
             }
 
-            // Late move pruning
+            // Forward pruning
             if current_depth >= LATE_PRUNING_DEPTH_START {
                 let moves_count = prior_values.len();
                 let mut cut_index = moves_count;
@@ -152,7 +154,6 @@ impl Game {
                 }
             }
 
-
             for i in 0..prior_values.len() {
                 info!(
                     "....{0} {1} {2}",
@@ -162,9 +163,10 @@ impl Game {
                 );
             }
 
-            info!("Current Depth: {}", current_depth);
+            info!("Current Depth: {0}, Node Count: {1}", current_depth, self.nodes_count);
             current_depth += 1;
         }
+        store.put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
         return best_move;
     }
 }
@@ -270,7 +272,7 @@ mod tests {
                     None => panic!("No move found"),
                 }
 
-                /* 
+                /*
                 let mut g = Game::new(
                     "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
                     8,
@@ -281,7 +283,6 @@ mod tests {
                     None => panic!("No move found"),
                 }
                 */
-            
             }
 
             Err(_) => panic!("Can't open logfile."),

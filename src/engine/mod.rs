@@ -5,6 +5,6 @@ pub mod helpers;
 pub mod move_gen;
 pub mod pvs;
 //pub mod negascout;
-pub mod quiesce;
+//pub mod quiesce;
 pub mod store;
 pub mod types;

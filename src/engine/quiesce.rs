@@ -1,8 +1,5 @@
-use super::{
-    evaluate::evaluate,
-    types::*, move_gen::MoveGenPrime,
-};
-use chess::{Board,   MoveGen};
+use super::{evaluate::evaluate, move_gen::MoveGenPrime, types::*};
+use chess::{Board, MoveGen};
 use std::{
     mem,
     sync::{
@@ -14,7 +11,7 @@ use std::{
 
 pub fn quiesce(
     board: Board,
-    alpha: MoveScore,
+    mut alpha: MoveScore,
     beta: MoveScore,
     playing: &Arc<AtomicBool>,
     stop_time: SystemTime,
@@ -22,7 +19,6 @@ pub fn quiesce(
 ) -> MoveScore {
     let children: Vec<AnnotatedMove>;
     let mut score: MoveScore;
-    let mut alpha1 = alpha;
 
     if (!playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
         return 0;
@@ -32,8 +28,8 @@ pub fn quiesce(
     if score >= beta {
         return beta;
     }
-    if score > alpha1 {
-        alpha1 = score;
+    if score > alpha {
+        alpha = score;
     }
 
     // TODO consider board history
@@ -45,23 +41,14 @@ pub fn quiesce(
             let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
         }
 
-        unsafe {
-            score = -quiesce(
-                *bresult.as_ptr(),
-                -beta,
-                -alpha1,
-                playing,
-                stop_time,
-                node_count,
-            );
-        }
+        score = evaluate(&board);
 
         if score >= beta {
             return beta;
         }
         if score > alpha {
-            alpha1 = score;
+            alpha = score;
         }
     }
-    return alpha1;
+    return alpha;
 }
