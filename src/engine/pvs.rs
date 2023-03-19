@@ -46,7 +46,8 @@ pub fn pvs(
     if depth < 1 {
         *node_count += 1;
         return evaluate(&board);
-        //return quiesce::quiesce(board, alpha, beta, playing, stop_time, node_count);
+        // TODO: Quiescence search causes issues
+        // return quiesce::quiesce(board, alpha, beta, playing, stop_time, node_count);
     }
 
     let mut moves = children.iter();
