@@ -1,4 +1,4 @@
-use super::{constants::MATE, evaluate::evaluate, move_gen::MoveGenPrime, store::Store, types::*};
+use super::{constants::MATE, evaluate::evaluate, move_gen::MoveGenPrime, store::Store, types::*, quiesce};
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
 use std::{
     mem,
@@ -80,7 +80,6 @@ pub fn pvs(
             best_move = Some(child.mv);
         }
 
-        bresult = mem::MaybeUninit::<Board>::uninit();
         unsafe {
             let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
         }
@@ -99,10 +98,6 @@ pub fn pvs(
 
         if temp > value {
             if alpha < temp && temp < beta && depth > 2 {
-                bresult = mem::MaybeUninit::<Board>::uninit(); // TODO this can be removed
-                unsafe {
-                    let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
-                }
                 unsafe {
                     value = -pvs(
                         *bresult.as_ptr(),
@@ -122,8 +117,10 @@ pub fn pvs(
     }
 
     if best_move.is_some() {
-        store.put(depth - 1, alpha, &board, &best_move.unwrap());
+        store.put(depth - 1, value, &board, &best_move.unwrap());
     }
+
+    // TODO Shouldn't we give back alpha?
 
     return value;
 }
