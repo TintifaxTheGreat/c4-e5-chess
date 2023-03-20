@@ -19,8 +19,9 @@ pub fn pvs(
 ) -> MoveScore {
     let mut best_move: Option<ChessMove> = None;
     let children: Vec<AnnotatedMove>;
-    let mut value;
-    let mut temp: i32;
+    let mut child_old: AnnotatedMove;
+    let mut score;
+    let mut value: i32;
 
     if !playing.load(Ordering::Relaxed) {
         return 0;
@@ -55,7 +56,7 @@ pub fn pvs(
         let _ = &board.make_move(child_1.mv, &mut *bresult.as_mut_ptr());
     }
     unsafe {
-        value = -pvs(
+        score = -pvs(
             *bresult.as_ptr(),
             store,
             depth - 1,
@@ -65,23 +66,23 @@ pub fn pvs(
             node_count,
         )
     }
+    child_old = *child_1;
 
     for child in &mut moves {
-        if value >= beta {
-            alpha = value;
-            best_move = Some(child.mv);
+        if score >= beta {
+            best_move = Some(child_old.mv);
             break;
         }
-        if value > alpha {
-            alpha = value;
-            best_move = Some(child.mv);
+        if score > alpha {
+            alpha = score;
+            best_move = Some(child_old.mv);
         }
 
         unsafe {
             let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
         }
         unsafe {
-            temp = -pvs(
+            value = -pvs(
                 *bresult.as_ptr(),
                 store,
                 depth - 1,
@@ -92,30 +93,28 @@ pub fn pvs(
             )
         }
 
-        if temp > value {
-            if alpha < temp && temp < beta && depth > 2 {
+        if value > score {
+            if alpha < value && value < beta && depth > 2{
                 unsafe {
-                    value = -pvs(
+                    score = -pvs(
                         *bresult.as_ptr(),
                         store,
                         depth - 1,
                         -beta,
-                        -temp,
+                        -value,
                         playing,
                         node_count,
                     )
                 }
             } else {
-                value = temp;
+                score = value;
             }
         }
+        child_old = *child;
     }
-
+    // TODO check why storing takes that long (use hashing?) 
     if best_move.is_some() {
-        store.put(depth - 1, value, &board, &best_move.unwrap());
+        store.put(depth-1, score, &board, &best_move.unwrap());
     }
-
-    // TODO Shouldn't we give back alpha?
-
-    return value;
+    return score;
 }
