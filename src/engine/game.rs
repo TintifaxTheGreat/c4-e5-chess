@@ -1,4 +1,4 @@
-use super::{constants::*, store::Store, types::*};
+use super::{constants::*, history::History, store::Store, types::*};
 use crate::engine::pvs;
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
@@ -45,7 +45,8 @@ impl Game {
     }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
-        let mut store: Store = Store::new();
+        let mut store = Store::new();
+        let mut history = History::new();
         let alpha = MIN_INT;
         let beta = MAX_INT;
         let mut current_depth: Depth = 0;
@@ -68,6 +69,7 @@ impl Game {
                     break 'main_loop;
                 }
 
+                history.inc(&self.board);
                 unsafe {
                     let _ = self
                         .board
@@ -77,6 +79,7 @@ impl Game {
                     prior_values[i].sc = -pvs::pvs(
                         *bresult.as_ptr(),
                         &mut store,
+                        &mut history,
                         current_depth,
                         -beta,
                         -alpha,
@@ -84,6 +87,7 @@ impl Game {
                         &mut self.nodes_count,
                     )
                 }
+                history.dec(&self.board);
             }
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
@@ -237,7 +241,7 @@ mod tests {
                     None => panic!("No move found"),
                 }
 
-                /* 
+                /*
                 let mut g = Game::new(
                     "3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 1 0".to_string(),
                     8,

@@ -1,6 +1,7 @@
 use super::{
     constants::{MATE, MIN_INT},
     evaluate::evaluate,
+    history::History,
     move_gen::MoveGenPrime,
     store::Store,
     types::*,
@@ -17,6 +18,7 @@ use std::{
 pub fn pvs(
     board: Board,
     store: &mut Store,
+    history: &mut History,
     depth: Depth,
     mut alpha: MoveScore,
     beta: MoveScore,
@@ -25,10 +27,14 @@ pub fn pvs(
 ) -> MoveScore {
     let mut best_move: Option<ChessMove> = None;
     let children: Vec<AnnotatedMove>;
-    let mut score = MIN_INT;
-    let mut value: i32;
+    let mut score: MoveScore = MIN_INT;
+    let mut value: MoveScore;
 
     if !playing.load(Ordering::Relaxed) {
+        return 0;
+    }
+
+    if history.get(&board) > 2 {
         return 0;
     }
 
@@ -37,8 +43,6 @@ pub fn pvs(
         Some((mv, _, false)) => children = MoveGen::get_legal_sorted(&board, false, Some(mv)),
         None => children = MoveGen::get_legal_sorted(&board, false, None),
     }
-
-    // TODO consider board history
 
     if children.len() == 0 {
         if board.status() == BoardStatus::Checkmate {
@@ -58,6 +62,7 @@ pub fn pvs(
     let mut bresult = mem::MaybeUninit::<Board>::uninit();
 
     for (i, child) in &mut moves.enumerate() {
+        history.inc(&board);
         unsafe {
             let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
         }
@@ -66,6 +71,7 @@ pub fn pvs(
                 score = -pvs(
                     *bresult.as_ptr(),
                     store,
+                    history,
                     depth - 1,
                     -beta,
                     -alpha,
@@ -78,6 +84,7 @@ pub fn pvs(
                 value = -pvs(
                     *bresult.as_ptr(),
                     store,
+                    history,
                     depth - 1,
                     -alpha - 1,
                     -alpha,
@@ -92,6 +99,7 @@ pub fn pvs(
                         score = -pvs(
                             *bresult.as_ptr(),
                             store,
+                            history,
                             depth - 1,
                             -beta,
                             -value,
@@ -104,6 +112,7 @@ pub fn pvs(
                 }
             }
         }
+        history.dec(&board);
 
         if score >= beta {
             best_move = Some(child.mv);
