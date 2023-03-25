@@ -1,7 +1,7 @@
 use super::types::*;
 use chess::{Board, ChessMove};
-use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::collections::HashMap;
+use hashbrown::hash_map::Entry::{Occupied, Vacant};
+use hashbrown::HashMap;
 
 pub struct Item {
     depth: Depth,
