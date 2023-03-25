@@ -1,4 +1,4 @@
-use super::{constants::*, store::Store, types::*};
+use super::{constants::*, history::History, store::Store, types::*};
 use crate::engine::pvs;
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
@@ -9,7 +9,6 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    time::{Duration, SystemTime},
 };
 
 pub struct Game {
@@ -46,81 +45,49 @@ impl Game {
     }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
-        let mut store: Store = Store::new();
+        let mut store = Store::new();
+        let mut history = History::new();
         let alpha = MIN_INT;
         let beta = MAX_INT;
         let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore;
         let mut worst_value: MoveScore;
-        let stop_time = SystemTime::now() + Duration::from_millis(self.move_time);
-
+        let mut bresult = mem::MaybeUninit::<Board>::uninit();
         let mut moves = MoveGen::new_legal(&self.board);
 
         if moves.len() == 1 {
             return Some(moves.next().unwrap());
         }
 
-        let mut prior_values: Vec<ScoredMove> = moves
-            .map(|mv| ScoredMove {
-                mv,
-                sc: 0,
-                incr: true,
-            })
-            .collect();
+        let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
 
         'main_loop: while current_depth <= self.max_depth {
-            let mut search: bool;
             for i in 0..prior_values.len() {
-                let mut bresult = mem::MaybeUninit::<Board>::uninit();
-
-                unsafe {
-                    let _ = &self
-                        .board
-                        .make_move(prior_values[i].mv, &mut *bresult.as_mut_ptr());
-                    match store.get(current_depth, &*bresult.as_ptr()) {
-                        Some((_mm, vv, fresh)) => {
-                            if fresh {
-                                prior_values[i] = ScoredMove {
-                                    mv: prior_values[i].mv,
-                                    sc: -vv,
-                                    incr: true,
-                                };
-                                search = false;
-                            } else {
-                                search = true;
-                            }
-                        }
-                        None => {
-                            search = true;
-                        }
-                    }
-                }
-
-                if search {
-                    unsafe {
-                        let vv = pvs::pvs(
-                            *bresult.as_ptr(),
-                            &mut store,
-                            current_depth,
-                            -beta,
-                            -alpha,
-                            &self.playing,
-                            stop_time,
-                            &mut self.nodes_count,
-                        );
-                        prior_values[i] = ScoredMove {
-                            mv: prior_values[i].mv,
-                            sc: -vv,
-                            incr: true,
-                        };
-                    }
-                }
-
-                if (!self.playing.load(Ordering::Relaxed)) || (SystemTime::now() >= stop_time) {
-                    println!("Time has expired");
+                if !self.playing.load(Ordering::Relaxed) {
+                    info!("Time has expired");
                     break 'main_loop;
                 }
+
+                history.inc(&self.board);
+                unsafe {
+                    let _ = self
+                        .board
+                        .make_move(prior_values[i].mv, &mut *bresult.as_mut_ptr());
+                }
+                unsafe {
+                    prior_values[i].sc = -pvs::pvs(
+                        *bresult.as_ptr(),
+                        &mut store,
+                        &mut history,
+                        current_depth,
+                        -beta,
+                        -alpha,
+                        &self.playing,
+                        &mut self.nodes_count,
+                    )
+                }
+                history.dec(&self.board);
             }
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
@@ -141,7 +108,7 @@ impl Game {
                 let mut cut_index = moves_count;
                 worst_value = prior_values[moves_count - 1].sc;
                 if worst_value < best_value {
-                    for i in 2..moves_count {
+                    for i in 3..moves_count {
                         if (100 * (prior_values[i].sc - worst_value) / (best_value - worst_value))
                             < LATE_PRUNING_PERCENT
                         {
@@ -156,14 +123,16 @@ impl Game {
 
             for i in 0..prior_values.len() {
                 info!(
-                    "....{0} {1} {2}",
+                    "....{0} {1}",
                     prior_values[i].mv.to_string(),
                     prior_values[i].sc,
-                    prior_values[i].incr,
                 );
             }
 
-            info!("Current Depth: {0}, Node Count: {1}", current_depth, self.nodes_count);
+            info!(
+                "Current Depth: {0}, Node Count: {1}",
+                current_depth, self.nodes_count
+            );
             current_depth += 1;
         }
         store.put(current_depth - 1, alpha, &self.board, &best_move.unwrap());

@@ -1,5 +1,5 @@
 
-* Repair timer (threads!)
+* Fix issues w. pvs
 * Consider 3x repetitions
 * time mgmt consider moves to go
 * Configuration (env?)
@@ -8,8 +8,8 @@
 * Add comments
 * More test positions
 * Improve evaluation
-** Pwans on 7th rank
-** Double pawns etc.
+  * Pwans on 7th rank
+  * Double pawns etc.
 * Add proper mate finder
 
 

@@ -1,7 +1,7 @@
 use super::types::*;
 use chess::{Board, ChessMove};
-use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::collections::HashMap;
+use hashbrown::hash_map::Entry::{Occupied, Vacant};
+use hashbrown::HashMap;
 
 pub struct Item {
     depth: Depth,
@@ -10,7 +10,7 @@ pub struct Item {
 }
 
 pub struct Store {
-    h: HashMap<Board, Item>,
+    h: HashMap<u64, Item>,
 }
 
 impl Store {
@@ -19,7 +19,7 @@ impl Store {
     }
 
     pub fn put(&mut self, depth: Depth, value: MoveScore, b: &Board, chessmove: &ChessMove) {
-        let key = *b;
+        let key = b.get_hash();
         let item = Item {
             depth,
             value,
@@ -41,7 +41,7 @@ impl Store {
     pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(ChessMove, MoveScore, bool)> {
         // TODO why do we have to use mutable? --> Change implementation!
 
-        let key = *b;
+        let key = b.get_hash();
         match &self.h.entry(key) {
             Occupied(val) => {
                 let old_item = val.get();

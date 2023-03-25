@@ -29,25 +29,25 @@ pub fn evaluate(b: &Board) -> MoveScore {
     let black_king = b.pieces(Piece::King).0 & black_figures;
 
     // Rules concerning pawns
-    value += (white_pawns.count_ones() * 190) as MoveScore;
+    value += (white_pawns.count_ones() * 200) as MoveScore;
     value -= (black_pawns.count_ones() * 200) as MoveScore;
 
     value += ((white_pawns & CB_CENTER_0).count_ones() * 40) as MoveScore;
     value -= ((black_pawns & CB_CENTER_0).count_ones() * 40) as MoveScore;
 
     // Rules concerning knights
-    value += (white_knights.count_ones() * 590) as MoveScore;
+    value += (white_knights.count_ones() * 600) as MoveScore;
     value -= (black_knights.count_ones() * 600) as MoveScore;
 
     value -= ((white_knights & CB_BOARD_0).count_ones() * 20) as MoveScore;
     value += ((black_knights & CB_BOARD_0).count_ones() * 20) as MoveScore;
 
     // Rules concerning bishops
-    value += (white_bishops.count_ones() * 610) as MoveScore;
+    value += (white_bishops.count_ones() * 620) as MoveScore;
     value -= (black_bishops.count_ones() * 620) as MoveScore;
 
     // Rules concerning rooks
-    value += (white_rooks.count_ones() * 940) as MoveScore;
+    value += (white_rooks.count_ones() * 950) as MoveScore;
     value -= (black_rooks.count_ones() * 950) as MoveScore;
 
     value += ((white_rooks & b_open_files).count_ones() * 20) as MoveScore;
@@ -57,7 +57,7 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value -= ((black_rooks & b_half_open_files).count_ones() * 10) as MoveScore;
 
     // Rules concerning queens
-    value += (white_queens.count_ones() * 1790) as MoveScore;
+    value += (white_queens.count_ones() * 1800) as MoveScore;
     value -= (black_queens.count_ones() * 1800) as MoveScore;
 
     value -= ((white_queens & CB_CENTER).count_ones() * 30) as MoveScore;
