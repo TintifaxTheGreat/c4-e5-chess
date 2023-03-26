@@ -7,7 +7,8 @@ use std::{
     io::stdin,
     mem,
     str::{FromStr, SplitWhitespace},
-    thread, sync::{atomic::Ordering},
+    sync::atomic::Ordering,
+    thread,
 };
 
 pub struct Cli {
@@ -30,7 +31,7 @@ impl Cli {
             let mut input_bak = input.clone();
             input_bak.pop();
             let input_bak_str = input_bak.as_str();
-            let mut words = input.trim().split_whitespace();
+            let mut words = input.split_whitespace();
 
             match words.next() {
                 Some(command) => {
@@ -66,145 +67,139 @@ impl Cli {
     }
 
     fn position(&mut self, mut args: SplitWhitespace) {
-        loop {
-            match args.next() {
-                Some(cmd) => match cmd {
-                    "fen" => {
-                        let mut fen: String = "".to_string();
-                        for i in 0..6 {
-                            match args.next() {
-                                Some(s) => {
-                                    fen = fen + s + " ";
-                                    if i == 5 {
-                                        // move count
-                                        match s.parse::<MoveNumber>() {
-                                            Ok(n) => self.game.move_number = n,
-                                            Err(_) => error!("No move number in FEN"),
-                                        }
+        while let Some(cmd) = args.next() {
+            match cmd {
+                "fen" => {
+                    let mut fen: String = "".to_string();
+                    for i in 0..6 {
+                        match args.next() {
+                            Some(s) => {
+                                fen = fen + s + " ";
+                                if i == 5 {
+                                    // move count
+                                    match s.parse::<MoveNumber>() {
+                                        Ok(n) => self.game.move_number = n,
+                                        Err(_) => error!("No move number in FEN"),
                                     }
                                 }
-                                None => {
-                                    error!("No FEN found");
-                                    return;
-                                }
                             }
-                        }
-                        match Board::from_str(fen.as_str()) {
-                            Ok(b) => self.game.board = b,
-                            Err(_) => {
-                                error!("FEN not valid");
+                            None => {
+                                error!("No FEN found");
                                 return;
                             }
                         }
                     }
+                    match Board::from_str(fen.as_str()) {
+                        Ok(b) => self.game.board = b,
+                        Err(_) => {
+                            error!("FEN not valid");
+                            return;
+                        }
+                    }
+                }
 
-                    // do nothing as game was already initialised with startposition
-                    "startpos" => {}
+                // do nothing as game was already initialised with startposition
+                "startpos" => {}
 
-                    "moves" => loop {
-                        match args.next() {
-                            Some(move_string) => {
-                                let mut result = Board::default();
-                                match ChessMove::from_str(move_string) {
-                                    Ok(m) => {
-                                        self.game.board.make_move(m, &mut result);
-                                        self.game.board = result;
-                                        if self.game.board.side_to_move() == Color::Black {
-                                            self.game.move_number += 1;
-                                        }
-                                    }
-                                    Err(_) => {
-                                        error!("Illegal move");
-                                        return;
+                "moves" => loop {
+                    match args.next() {
+                        Some(move_string) => {
+                            let mut result = Board::default();
+                            match ChessMove::from_str(move_string) {
+                                Ok(m) => {
+                                    self.game.board.make_move(m, &mut result);
+                                    self.game.board = result;
+                                    if self.game.board.side_to_move() == Color::Black {
+                                        self.game.move_number += 1;
                                     }
                                 }
+                                Err(_) => {
+                                    error!("Illegal move");
+                                    return;
+                                }
                             }
-                            None => return,
                         }
-                    },
-
-                    _ => break,
+                        None => return,
+                    }
                 },
-                None => break,
+
+                _ => break,
             }
         }
     }
 
     fn go(&mut self, mut args: SplitWhitespace) {
-        loop {
-            match args.next() {
-                Some(cmd) => match cmd {
-                    "searchmoves" => {}
+        while let Some(cmd) = args.next() {
+            match cmd {
+                "searchmoves" => {}
 
-                    "ponder" => {}
+                "ponder" => {}
 
-                    "wtime" => match args.next() {
-                        Some(arg) => match arg.parse() {
-                            Ok(a) => self.tm.white_time = a,
-                            Err(_) => break,
-                        },
-                        None => break,
+                "wtime" => match args.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(a) => self.tm.white_time = a,
+                        Err(_) => break,
                     },
-
-                    "btime" => match args.next() {
-                        Some(arg) => match arg.parse() {
-                            Ok(a) => self.tm.black_time = a,
-                            Err(_) => break,
-                        },
-                        None => break,
-                    },
-
-                    "winc" => match args.next() {
-                        Some(arg) => match arg.parse() {
-                            Ok(a) => self.tm.white_inc = a,
-                            Err(_) => break,
-                        },
-                        None => break,
-                    },
-
-                    "binc" => match args.next() {
-                        Some(arg) => match arg.parse() {
-                            Ok(a) => self.tm.black_inc = a,
-                            Err(_) => break,
-                        },
-                        None => break,
-                    },
-
-                    "movestogo" => match args.next() {
-                        Some(arg) => match arg.parse() {
-                            Ok(a) => self.tm.moves_to_go = a,
-                            Err(_) => break,
-                        },
-                        None => break,
-                    },
-
-                    "depth" => match args.next() {
-                        Some(arg) => match arg.parse() {
-                            Ok(a) => self.game.max_depth = a,
-                            Err(_) => break,
-                        },
-                        None => break,
-                    },
-
-                    "nodes" => {}
-
-                    "mate" => {}
-
-                    "movetime" => match args.next() {
-                        Some(arg) => match arg.parse::<u64>() {
-                            Ok(a) => {
-                                self.game.move_time = a * 9 / 10;
-                                //self.timer_start();
-                                //return;
-                            }
-                            Err(_) => break,
-                        },
-                        None => break,
-                    },
-
-                    _ => break,
+                    None => break,
                 },
-                None => break,
+
+                "btime" => match args.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(a) => self.tm.black_time = a,
+                        Err(_) => break,
+                    },
+                    None => break,
+                },
+
+                "winc" => match args.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(a) => self.tm.white_inc = a,
+                        Err(_) => break,
+                    },
+                    None => break,
+                },
+
+                "binc" => match args.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(a) => self.tm.black_inc = a,
+                        Err(_) => break,
+                    },
+                    None => break,
+                },
+
+                "movestogo" => match args.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(a) => self.tm.moves_to_go = a,
+                        Err(_) => break,
+                    },
+                    None => break,
+                },
+
+                "depth" => match args.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(a) => self.game.max_depth = a,
+                        Err(_) => break,
+                    },
+                    None => break,
+                },
+
+                "nodes" => {}
+
+                "mate" => {}
+
+                "movetime" => match args.next() {
+                    Some(arg) => match arg.parse::<u64>() {
+                        Ok(a) => {
+                            self.game.move_time = a * 9 / 10;
+                            //self.timer_start();
+                            //return;
+                        }
+                        Err(_) => break,
+                    },
+                    None => break,
+                },
+
+                _ => break,
             }
         }
         self.tm.set_game_time(&mut self.game);
@@ -214,7 +209,7 @@ impl Cli {
     fn timer_start(&mut self) {
         self.game.playing.store(true, Ordering::Relaxed);
         let playing_clone = self.game.playing.clone();
-        let move_time = self.game.move_time.clone();
+        let move_time = self.game.move_time;
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(move_time));
             playing_clone.store(false, Ordering::Relaxed);
@@ -227,7 +222,7 @@ impl Cli {
                 unsafe {
                     let _ = &self.game.board.make_move(m, &mut *bresult.as_mut_ptr());
                 }
-                let result = format!("bestmove {}", m.to_string());
+                let result = format!("bestmove {}", m);
                 info!("{} nodes examined.", self.game.nodes_count);
                 self.send_string(result.as_str());
             }

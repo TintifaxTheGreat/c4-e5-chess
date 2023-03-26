@@ -26,7 +26,6 @@ pub fn pvs(
     node_count: &mut u64,
 ) -> MoveScore {
     let mut best_move: Option<ChessMove> = None;
-    let children: Vec<AnnotatedMove>;
     let mut score: MoveScore = MIN_INT;
     let mut value: MoveScore;
 
@@ -38,13 +37,13 @@ pub fn pvs(
         return 0;
     }
 
-    match store.get(depth, &board) {
+    let children: Vec<AnnotatedMove> = match store.get(depth, &board) {
         Some((_, v, true)) => return v,
-        Some((mv, _, false)) => children = MoveGen::get_legal_sorted(&board, false, Some(mv)),
-        None => children = MoveGen::get_legal_sorted(&board, false, None),
-    }
+        Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, false, Some(mv)),
+        None => MoveGen::get_legal_sorted(&board, false, None),
+    };
 
-    if children.len() == 0 {
+    if children.is_empty() {
         if board.status() == BoardStatus::Checkmate {
             return -MATE - i32::from(depth);
         }
@@ -123,8 +122,9 @@ pub fn pvs(
             best_move = Some(child.mv);
         }
     }
-    if best_move.is_some() {
-        store.put(depth - 1, score, &board, &best_move.unwrap());
+
+    if let Some(bm) = best_move {
+        store.put(depth - 1, score, &board, &bm);
     }
-    return score;
+    score
 }

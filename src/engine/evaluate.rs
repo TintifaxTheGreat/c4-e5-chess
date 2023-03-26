@@ -106,5 +106,5 @@ pub fn evaluate(b: &Board) -> MoveScore {
         }
         value += kings_value;
     }
-    return value;
+    value
 }
