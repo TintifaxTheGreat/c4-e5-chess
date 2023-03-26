@@ -32,8 +32,11 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value += (white_pawns.count_ones() * 200) as MoveScore;
     value -= (black_pawns.count_ones() * 200) as MoveScore;
 
-    value += ((white_pawns & CB_CENTER_0).count_ones() * 40) as MoveScore;
-    value -= ((black_pawns & CB_CENTER_0).count_ones() * 40) as MoveScore;
+    value += ((white_pawns & CB_CENTER_0).count_ones() * 20) as MoveScore;
+    value -= ((black_pawns & CB_CENTER_0).count_ones() * 20) as MoveScore;
+
+    value += ((white_pawns & CB_CENTER_1).count_ones() * 30) as MoveScore;
+    value -= ((black_pawns & CB_CENTER_1).count_ones() * 30) as MoveScore;
 
     value += ((white_pawns & CB_7TH_RANK).count_ones() * 300) as MoveScore;
     value -= ((black_pawns & CB_2ND_RANK).count_ones() * 300) as MoveScore;
@@ -42,8 +45,8 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value += (white_knights.count_ones() * 600) as MoveScore;
     value -= (black_knights.count_ones() * 600) as MoveScore;
 
-    value -= ((white_knights & CB_BOARD_0).count_ones() * 20) as MoveScore;
-    value += ((black_knights & CB_BOARD_0).count_ones() * 20) as MoveScore;
+    value -= ((white_knights & CB_BOARD_0).count_ones() * 29) as MoveScore;
+    value += ((black_knights & CB_BOARD_0).count_ones() * 29) as MoveScore;
 
     // Rules concerning bishops
     value += (white_bishops.count_ones() * 620) as MoveScore;
@@ -67,11 +70,11 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value += ((black_queens & CB_CENTER).count_ones() * 30) as MoveScore;
 
     if pieces_count > 20 {
-        value -= ((white_knights & CB_BASE_LINE).count_ones() * 40) as MoveScore;
-        value += ((black_knights & CB_BASE_LINE).count_ones() * 40) as MoveScore;
+        value -= ((white_knights & CB_BASE_LINE).count_ones() * 51) as MoveScore;
+        value += ((black_knights & CB_BASE_LINE).count_ones() * 51) as MoveScore;
 
-        value -= ((white_bishops & CB_BASE_LINE).count_ones() * 40) as MoveScore;
-        value += ((black_bishops & CB_BASE_LINE).count_ones() * 40) as MoveScore;
+        value -= ((white_bishops & CB_BASE_LINE).count_ones() * 51) as MoveScore;
+        value += ((black_bishops & CB_BASE_LINE).count_ones() * 51) as MoveScore;
 
         value += ((white_bishops & CB_GOOD_BISHOP).count_ones() * 20) as MoveScore;
         value -= ((black_bishops & CB_GOOD_BISHOP).count_ones() * 20) as MoveScore;
