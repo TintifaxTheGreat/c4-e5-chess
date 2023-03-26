@@ -4,6 +4,7 @@ use chess::Color;
 use log::info;
 use std::cmp::{max, min};
 
+#[derive(Default)]
 pub struct TimeManagement {
     pub white_time: MoveTime,
     pub black_time: MoveTime,
@@ -41,17 +42,5 @@ impl TimeManagement {
         move_time = max(move_time, MIN_MOVE_TIME);
         g.move_time = move_time;
         info!("Movetime was set to {}", move_time);
-    }
-}
-
-impl Default for TimeManagement {
-    fn default() -> TimeManagement {
-        TimeManagement {
-            white_time: 0,
-            black_time: 0,
-            white_inc: 0,
-            black_inc: 0,
-            moves_to_go: 0,
-        }
     }
 }

@@ -15,116 +15,104 @@ use std::{
     },
 };
 
-pub fn pvs(
-    board: Board,
-    store: &mut Store,
-    history: &mut History,
-    depth: Depth,
-    mut alpha: MoveScore,
-    beta: MoveScore,
-    playing: &Arc<AtomicBool>,
-    node_count: &mut u64,
-) -> MoveScore {
-    let mut best_move: Option<ChessMove> = None;
-    let children: Vec<AnnotatedMove>;
-    let mut score: MoveScore = MIN_INT;
-    let mut value: MoveScore;
+pub struct Pvs {
+    pub store: Store,
+    pub history: History,
+    pub node_count: u64,
+}
 
-    if !playing.load(Ordering::Relaxed) {
-        return 0;
-    }
-
-    if history.get(&board) > 2 {
-        return 0;
-    }
-
-    match store.get(depth, &board) {
-        Some((_, v, true)) => return v,
-        Some((mv, _, false)) => children = MoveGen::get_legal_sorted(&board, false, Some(mv)),
-        None => children = MoveGen::get_legal_sorted(&board, false, None),
-    }
-
-    if children.len() == 0 {
-        if board.status() == BoardStatus::Checkmate {
-            return -MATE - i32::from(depth);
+impl Pvs {
+    pub fn new() -> Self {
+        Self {
+            store: Store::new(),
+            history: History::new(),
+            node_count: 0,
         }
-        return 0;
     }
 
-    if depth < 1 {
-        *node_count += 1;
-        return evaluate(&board);
-        // TODO: Quiescence search causes issues
-        // return quiesce::quiesce(board, alpha, beta, playing, stop_time, node_count);
-    }
+    pub fn execute(
+        &mut self,
+        board: Board,
+        depth: Depth,
+        mut alpha: MoveScore,
+        beta: MoveScore,
+        playing: &Arc<AtomicBool>,
+    ) -> MoveScore {
+        let mut best_move: Option<ChessMove> = None;
+        let mut score: MoveScore = MIN_INT;
+        let mut value: MoveScore;
 
-    let moves = children.iter();
-    let mut bresult = mem::MaybeUninit::<Board>::uninit();
-
-    for (i, child) in &mut moves.enumerate() {
-        history.inc(&board);
-        unsafe {
-            let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
+        if !playing.load(Ordering::Relaxed) {
+            return 0;
         }
-        if i == 0 {
-            unsafe {
-                score = -pvs(
-                    *bresult.as_ptr(),
-                    store,
-                    history,
-                    depth - 1,
-                    -beta,
-                    -alpha,
-                    playing,
-                    node_count,
-                )
-            }
-        } else {
-            unsafe {
-                value = -pvs(
-                    *bresult.as_ptr(),
-                    store,
-                    history,
-                    depth - 1,
-                    -alpha - 1,
-                    -alpha,
-                    playing,
-                    node_count,
-                )
-            }
 
-            if value > score {
-                if alpha < value && value < beta && depth > 2 {
-                    unsafe {
-                        score = -pvs(
-                            *bresult.as_ptr(),
-                            store,
-                            history,
-                            depth - 1,
-                            -beta,
-                            -value,
-                            playing,
-                            node_count,
-                        )
+        if self.history.get(&board) > 2 {
+            return 0;
+        }
+
+        let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
+            Some((_, v, true)) => return v,
+            Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, false, Some(mv)),
+            None => MoveGen::get_legal_sorted(&board, false, None),
+        };
+
+        if children.is_empty() {
+            if board.status() == BoardStatus::Checkmate {
+                return -MATE - i32::from(depth);
+            }
+            return 0;
+        }
+
+        if depth < 1 {
+            self.node_count += 1;
+            return evaluate(&board);
+            // TODO: Quiescence search causes issues
+            // return quiesce::quiesce(board, alpha, beta, playing, stop_time, node_count);
+        }
+
+        let moves = children.iter();
+        let mut bresult = mem::MaybeUninit::<Board>::uninit();
+
+        for (i, child) in &mut moves.enumerate() {
+            self.history.inc(&board);
+            unsafe {
+                let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
+            }
+            if i == 0 {
+                unsafe {
+                    score = -self.execute(*bresult.as_ptr(), depth - 1, -beta, -alpha, playing)
+                }
+            } else {
+                unsafe {
+                    value = -self.execute(*bresult.as_ptr(), depth - 1, -alpha - 1, -alpha, playing)
+                }
+
+                if value > score {
+                    if alpha < value && value < beta && depth > 2 {
+                        unsafe {
+                            score =
+                                -self.execute(*bresult.as_ptr(), depth - 1, -beta, -value, playing)
+                        }
+                    } else {
+                        score = value;
                     }
-                } else {
-                    score = value;
                 }
             }
-        }
-        history.dec(&board);
+            self.history.dec(&board);
 
-        if score >= beta {
-            best_move = Some(child.mv);
-            break;
+            if score >= beta {
+                best_move = Some(child.mv);
+                break;
+            }
+            if score > alpha {
+                alpha = score;
+                best_move = Some(child.mv);
+            }
         }
-        if score > alpha {
-            alpha = score;
-            best_move = Some(child.mv);
+
+        if let Some(bm) = best_move {
+            self.store.put(depth - 1, score, &board, &bm);
         }
+        score
     }
-    if best_move.is_some() {
-        store.put(depth - 1, score, &board, &best_move.unwrap());
-    }
-    return score;
 }

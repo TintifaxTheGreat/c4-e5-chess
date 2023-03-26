@@ -11,7 +11,7 @@ pub fn defending_kings_moves_count(b: &Board) -> usize {
                 .collect();
             kings_moves.len()
         }
-        None => return 0,
+        None => 0,
     }
 }
 
@@ -27,28 +27,28 @@ pub fn kings_distance(b: &Board) -> MoveScore {
 pub fn north_fill(p: u64) -> u64 {
     let mut result = p | (p << 8);
     result = result | (result << 16);
-    return result | (result << 32);
+    result | (result << 32)
 }
 
 pub fn south_fill(p: u64) -> u64 {
     let mut result = p | (p >> 8);
     result = result | (result >> 16);
-    return result | (result >> 32);
+    result | (result >> 32)
 }
 
 pub fn file_fill(p: u64) -> u64 {
-    return north_fill(p) | south_fill(p);
+    north_fill(p) | south_fill(p)
 }
 
 pub fn open_files(b: &Board) -> u64 {
     let pawns = b.pieces(Piece::Pawn).0;
-    return !file_fill(pawns);
+    !file_fill(pawns)
 }
 
 pub fn half_open_files(b: &Board) -> u64 {
     let white = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::White).0);
     let black = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::Black).0);
-    return (white & !black) | (!white & black);
+    (white & !black) | (!white & black)
 }
 
 #[cfg(test)]

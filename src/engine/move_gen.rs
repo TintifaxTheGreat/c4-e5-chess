@@ -17,7 +17,7 @@ impl MoveGenPrime for MoveGen {
         old_move: Option<ChessMove>,
     ) -> Vec<AnnotatedMove> {
         let mut result: Vec<AnnotatedMove> = Vec::new();
-        let mut iterable = MoveGen::new_legal(&board);
+        let mut iterable = MoveGen::new_legal(board);
         let targets = board.color_combined(!board.side_to_move());
 
         iterable.set_iterator_mask(*targets);
@@ -36,21 +36,19 @@ impl MoveGenPrime for MoveGen {
 
         match old_move {
             Some(mv) => {
-                let mut i = 0;
-                for c in &mut result.iter() {
+                for (i, c) in (&mut result.iter()).enumerate() {
                     if c.mv == mv {
                         result.swap(0, i);
                         break;
                     }
-                    i += 1;
                 }
-                return result;
+                result
             }
-            None => return result,
+            None => result,
         }
     }
 
     fn count_legal(board: &Board) -> usize {
-        MoveGen::new_legal(&board).count()
+        MoveGen::new_legal(board).count()
     }
 }
