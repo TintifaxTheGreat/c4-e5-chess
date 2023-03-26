@@ -1,5 +1,4 @@
-use super::{constants::*, history::History, store::Store, types::*};
-use crate::engine::pvs;
+use super::{constants::*, pvs::Pvs, types::*};
 use chess::{Board, ChessMove, MoveGen};
 use log::info;
 use std::{
@@ -44,10 +43,9 @@ impl Game {
     }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
-        let mut store = Store::new();
-        let mut history = History::new();
         let alpha = MIN_INT;
         let beta = MAX_INT;
+        let mut pvs = Pvs::new();
         let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore;
@@ -60,6 +58,7 @@ impl Game {
         }
 
         let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
+        //
 
         'main_loop: while current_depth <= self.max_depth {
             //for i in 0..prior_values.len() {
@@ -69,23 +68,20 @@ impl Game {
                     break 'main_loop;
                 }
 
-                history.inc(&self.board);
+                pvs.history.inc(&self.board);
                 unsafe {
                     self.board.make_move(pv.mv, &mut *bresult.as_mut_ptr());
                 }
                 unsafe {
-                    pv.sc = -pvs::pvs(
+                    pv.sc = -pvs.execute(
                         *bresult.as_ptr(),
-                        &mut store,
-                        &mut history,
                         current_depth,
                         -beta,
                         -alpha,
                         &self.playing,
-                        &mut self.nodes_count,
                     )
                 }
-                history.dec(&self.board);
+                pvs.history.dec(&self.board);
             }
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
@@ -135,7 +131,8 @@ impl Game {
             */
             current_depth += 1;
         }
-        store.put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
+        pvs.store
+            .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
         best_move
     }
 }
