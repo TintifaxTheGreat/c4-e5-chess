@@ -1,15 +1,13 @@
 
-* Fix issues w. pvs
-* Consider 3x repetitions
-* time mgmt consider moves to go
-* Configuration (env?)
+* Config logger 
+* Improve evaluation
+  * Double pawns etc.
+* Re-introduce quiescense
 
 * Add readme
 * Add comments
-* More test positions
-* Improve evaluation
-  * Pwans on 7th rank
-  * Double pawns etc.
-* Add proper mate finder
 
+* Add mate finder
+* time mgmt consider moves to go
+* More test positions
 

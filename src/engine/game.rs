@@ -18,7 +18,6 @@ pub struct Game {
     pub move_number: MoveNumber,
     pub playing: Arc<AtomicBool>,
     pub nodes_count: u64,
-    //TODO board_history:
 }
 
 impl Game {
