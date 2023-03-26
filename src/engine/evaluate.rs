@@ -35,6 +35,9 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value += ((white_pawns & CB_CENTER_0).count_ones() * 40) as MoveScore;
     value -= ((black_pawns & CB_CENTER_0).count_ones() * 40) as MoveScore;
 
+    value += ((white_pawns & CB_7TH_RANK).count_ones() * 300) as MoveScore;
+    value -= ((black_pawns & CB_2ND_RANK).count_ones() * 300) as MoveScore;
+
     // Rules concerning knights
     value += (white_knights.count_ones() * 600) as MoveScore;
     value -= (black_knights.count_ones() * 600) as MoveScore;

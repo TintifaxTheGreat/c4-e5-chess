@@ -10,6 +10,8 @@ pub const CB_SAFE_KING: u64 = 0xc3000000000000c3;
 pub const CB_GOOD_BISHOP: u64 = 0x42006666004200;
 pub const CB_GOOD_QUEEN: u64 = 0x3c1800000000183c;
 pub const CB_BASE_LINE: u64 = 0xff000000000000ff;
+pub const CB_7TH_RANK: u64 = 0xff000000000000;
+pub const CB_2ND_RANK: u64 = 0xff00;
 
 // FEN
 pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

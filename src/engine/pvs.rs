@@ -123,7 +123,6 @@ pub fn pvs(
             best_move = Some(child.mv);
         }
     }
-    // TODO check why storing takes that long (use hashing?)
     if best_move.is_some() {
         store.put(depth - 1, score, &board, &best_move.unwrap());
     }
