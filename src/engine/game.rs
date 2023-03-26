@@ -120,6 +120,7 @@ impl Game {
                 }
             }
 
+            /* 
             for i in 0..prior_values.len() {
                 info!(
                     "....{0} {1}",
@@ -132,6 +133,7 @@ impl Game {
                 "Current Depth: {0}, Node Count: {1}",
                 current_depth, self.nodes_count
             );
+            */
             current_depth += 1;
         }
         store.put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
