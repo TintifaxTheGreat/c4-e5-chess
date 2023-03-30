@@ -58,10 +58,7 @@ impl Game {
         }
 
         let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
-        //
-
         'main_loop: while current_depth <= self.max_depth {
-            //for i in 0..prior_values.len() {
             for pv in &mut prior_values {
                 if !self.playing.load(Ordering::Relaxed) {
                     info!("Time has expired");
@@ -69,18 +66,15 @@ impl Game {
                 }
 
                 pvs.history.inc(&self.board);
-                unsafe {
-                    self.board.make_move(pv.mv, &mut *bresult.as_mut_ptr());
-                }
-                unsafe {
-                    pv.sc = -pvs.execute(
-                        *bresult.as_ptr(),
-                        current_depth,
-                        -beta,
-                        -alpha,
-                        &self.playing,
-                    )
-                }
+                self.board
+                    .make_move(pv.mv, unsafe { &mut *bresult.as_mut_ptr() });
+                pv.sc = -pvs.execute(
+                    unsafe { *bresult.as_ptr() },
+                    current_depth,
+                    -beta,
+                    -alpha,
+                    &self.playing,
+                );
                 pvs.history.dec(&self.board);
             }
 

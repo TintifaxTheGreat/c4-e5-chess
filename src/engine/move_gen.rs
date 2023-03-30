@@ -34,18 +34,15 @@ impl MoveGenPrime for MoveGen {
             result.push(AnnotatedMove { mv, capture: false });
         }
 
-        match old_move {
-            Some(mv) => {
-                for (i, c) in (&mut result.iter()).enumerate() {
-                    if c.mv == mv {
-                        result.swap(0, i);
-                        break;
-                    }
+        if let Some(mv) = old_move {
+            for (i, c) in (&mut result.iter()).enumerate() {
+                if c.mv == mv {
+                    result.swap(0, i);
+                    break;
                 }
-                result
             }
-            None => result,
         }
+        result
     }
 
     fn count_legal(board: &Board) -> usize {

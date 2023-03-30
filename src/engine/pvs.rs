@@ -75,24 +75,34 @@ impl Pvs {
 
         for (i, child) in &mut moves.enumerate() {
             self.history.inc(&board);
-            unsafe {
-                let _ = &board.make_move(child.mv, &mut *bresult.as_mut_ptr());
-            }
+
+            let _ = &board.make_move(child.mv, unsafe { &mut *bresult.as_mut_ptr() });
             if i == 0 {
-                unsafe {
-                    score = -self.execute(*bresult.as_ptr(), depth - 1, -beta, -alpha, playing)
-                }
+                score = -self.execute(
+                    unsafe { *bresult.as_ptr() },
+                    depth - 1,
+                    -beta,
+                    -alpha,
+                    playing,
+                )
             } else {
-                unsafe {
-                    value = -self.execute(*bresult.as_ptr(), depth - 1, -alpha - 1, -alpha, playing)
-                }
+                value = -self.execute(
+                    unsafe { *bresult.as_ptr() },
+                    depth - 1,
+                    -alpha - 1,
+                    -alpha,
+                    playing,
+                );
 
                 if value > score {
                     if alpha < value && value < beta && depth > 2 {
-                        unsafe {
-                            score =
-                                -self.execute(*bresult.as_ptr(), depth - 1, -beta, -value, playing)
-                        }
+                        score = -self.execute(
+                            unsafe { *bresult.as_ptr() },
+                            depth - 1,
+                            -beta,
+                            -value,
+                            playing,
+                        )
                     } else {
                         score = value;
                     }
