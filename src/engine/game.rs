@@ -9,6 +9,7 @@ use std::{
         Arc,
     },
 };
+use rayon::prelude::*;
 
 pub struct Game {
     pub max_depth: Depth,
@@ -45,12 +46,12 @@ impl Game {
     pub fn find_move(&mut self) -> Option<ChessMove> {
         let alpha = MIN_INT;
         let beta = MAX_INT;
-        let mut pvs = Pvs::new();
+        //let mut pvs = Pvs::new();
         let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore;
         let mut worst_value: MoveScore;
-        let mut bresult = mem::MaybeUninit::<Board>::uninit();
+        //let mut bresult = mem::MaybeUninit::<Board>::uninit();
         let mut moves = MoveGen::new_legal(&self.board);
 
         if moves.len() == 1 {
@@ -59,24 +60,24 @@ impl Game {
 
         let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
         'main_loop: while current_depth <= self.max_depth {
-            for pv in &mut prior_values {
-                if !self.playing.load(Ordering::Relaxed) {
-                    info!("Time has expired");
-                    break 'main_loop;
-                }
+            prior_values.par_iter_mut().for_each(|ScoredMove{mv,sc}| {
+                let mut bresult = mem::MaybeUninit::<Board>::uninit();
+                let mut pvs = Pvs::new();
 
                 pvs.history.inc(&self.board);
+
                 self.board
-                    .make_move(pv.mv, unsafe { &mut *bresult.as_mut_ptr() });
-                pv.sc = -pvs.execute(
+                    .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
+                *sc = -pvs.execute(
                     unsafe { *bresult.as_ptr() },
                     current_depth,
                     -beta,
                     -alpha,
                     &self.playing,
                 );
+
                 pvs.history.dec(&self.board);
-            }
+            });
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
 
@@ -125,8 +126,8 @@ impl Game {
             */
             current_depth += 1;
         }
-        pvs.store
-            .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
+        //pvs.store //TODO
+        //    .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
         best_move
     }
 }
