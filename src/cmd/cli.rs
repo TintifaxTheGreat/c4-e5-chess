@@ -1,14 +1,11 @@
 use super::time_management::TimeManagement;
 use crate::engine::{game::Game, types::*};
 use chess::{Board, ChessMove, Color};
-use core::time::Duration;
 use log::{error, info};
 use std::{
     io::stdin,
     mem,
     str::{FromStr, SplitWhitespace},
-    sync::atomic::Ordering,
-    thread,
 };
 
 pub struct Cli {
@@ -191,8 +188,6 @@ impl Cli {
                     Some(arg) => match arg.parse::<u64>() {
                         Ok(a) => {
                             self.game.move_time = a * 9 / 10;
-                            //self.timer_start();
-                            //return;
                         }
                         Err(_) => break,
                     },
@@ -203,19 +198,10 @@ impl Cli {
             }
         }
         self.tm.set_game_time(&mut self.game);
-        self.timer_start();
+        self.get_move_from_engine();
     }
 
-    fn timer_start(&mut self) {
-        self.game.playing.store(true, Ordering::Relaxed);
-        let playing_clone = self.game.playing.clone();
-        let move_time = self.game.move_time;
-        let handle = thread::spawn(move || {
-            thread::sleep(Duration::from_millis(move_time));
-            playing_clone.store(false, Ordering::Relaxed);
-        });
-
-        self.game.nodes_count = 0;
+    fn get_move_from_engine(&mut self) {
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -228,8 +214,6 @@ impl Cli {
             }
             None => error!("No valid move found"),
         }
-
-        handle.join().unwrap();
     }
 
     fn send_id(&self) {

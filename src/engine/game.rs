@@ -1,5 +1,6 @@
 use super::{constants::*, pvs::Pvs, types::*};
 use chess::{Board, ChessMove, MoveGen};
+use core::time::Duration;
 use log::info;
 use std::{
     mem,
@@ -7,7 +8,7 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    },
+    }, thread::{self, JoinHandle},
 };
 
 pub struct Game {
@@ -41,6 +42,19 @@ impl Game {
             Err(_) => panic!("FEN not valid"),
         }
     }
+    pub fn set_timer(&mut self) -> JoinHandle<()> {
+        self.playing.store(true, Ordering::Relaxed);
+        let playing_clone = self.playing.clone();
+        let move_time = self.move_time;
+        let handle = thread::spawn(move || {
+            thread::sleep(Duration::from_millis(move_time));
+            playing_clone.store(false, Ordering::Relaxed);
+        });
+
+        self.nodes_count = 0; // TODO this belongs elsewhere
+
+        handle
+    }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
         let alpha = MIN_INT;
@@ -52,6 +66,8 @@ impl Game {
         let mut worst_value: MoveScore;
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
         let mut moves = MoveGen::new_legal(&self.board);
+
+        let handle = self.set_timer();
 
         if moves.len() == 1 {
             return Some(moves.next().unwrap());
@@ -127,6 +143,7 @@ impl Game {
         }
         pvs.store
             .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
+        handle.join().unwrap();
         best_move
     }
 }

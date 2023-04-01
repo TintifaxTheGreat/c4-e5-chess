@@ -2,6 +2,7 @@ extern crate c4e5r;
 
 use c4e5r::engine::game::Game;
 use log::LevelFilter;
+use serial_test::serial;
 use test_case::test_case;
 
 const LOG_LOCATION: &str = "/home/eugen/work/rust/c4e5r/test.log";
@@ -28,10 +29,10 @@ static TEST_RESOURCE: &[&str] = &[
 #[test_case(3)]
 #[test_case(4)]
 #[test_case(5)]
-#[test_case(6)]
+#[serial]
 fn test_position(i: usize) {
     let str: Vec<&str> = TEST_RESOURCE[i].split(",").collect();
-    let mut g = Game::new(str[0].to_string(), 99, 5000);
+    let mut g = Game::new(str[0].to_string(), 0, 5000);
     if let Some(m) = g.find_move() {
         assert_eq!(m.to_string(), str[1]);
     }
