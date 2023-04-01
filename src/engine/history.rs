@@ -85,3 +85,9 @@ mod tests {
         assert_eq!(result, 2);
     }
 }
+
+impl Default for History {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -8,7 +8,8 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    }, thread::{self, JoinHandle},
+    },
+    thread::{self, JoinHandle},
 };
 
 pub struct Game {
@@ -67,7 +68,7 @@ impl Game {
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
         let mut moves = MoveGen::new_legal(&self.board);
 
-        let handle = self.set_timer();
+        self.set_timer();
 
         if moves.len() == 1 {
             return Some(moves.next().unwrap());
@@ -143,7 +144,7 @@ impl Game {
         }
         pvs.store
             .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
-        handle.join().unwrap();
+        
         best_move
     }
 }

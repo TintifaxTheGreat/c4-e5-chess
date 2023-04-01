@@ -238,3 +238,9 @@ impl Cli {
         info!("|   {}", s);
     }
 }
+
+impl Default for Cli {
+    fn default() -> Self {
+        Self::new()
+    }
+}

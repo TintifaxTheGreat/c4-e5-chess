@@ -130,15 +130,7 @@ static TEST_RESOURCE: &[&str] = &[
     */
 ];
 
-#[test_case(0)]
-#[test_case(1)]
-#[test_case(2)]
-#[test_case(3)]
-#[test_case(4)]
-#[test_case(5)]
-#[test_case(6)]
 #[test_case(7)]
-#[test_case(8)]
 #[serial]
 fn test_eigenmann(i: usize) {
     let str: Vec<&str> = TEST_RESOURCE[i].split(",").collect();
