@@ -126,3 +126,9 @@ impl Pvs {
         score
     }
 }
+
+impl Default for Pvs {
+    fn default() -> Self {
+        Self::new()
+    }
+}
