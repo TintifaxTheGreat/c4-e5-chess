@@ -39,8 +39,6 @@ impl Store {
     }
 
     pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(ChessMove, MoveScore, bool)> {
-        // TODO why do we have to use mutable? --> Change implementation!
-
         let key = b.get_hash();
         match &self.h.entry(key) {
             Occupied(val) => {

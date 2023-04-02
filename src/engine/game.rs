@@ -63,12 +63,10 @@ impl Game {
     pub fn find_move(&mut self) -> Option<ChessMove> {
         let alpha = MIN_INT;
         let beta = MAX_INT;
-        //let mut pvs = Pvs::new();
         let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore;
         let mut worst_value: MoveScore;
-        //let mut bresult = mem::MaybeUninit::<Board>::uninit();
         let mut moves = MoveGen::new_legal(&self.board);
 
         self.set_timer();

@@ -1,3 +1,5 @@
+// test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.18s
+
 extern crate c4e5r;
 
 use c4e5r::{engine::game::Game, misc::helpers::parse_epd};
@@ -13,7 +15,6 @@ fn init() {
     simple_logging::log_to_file(LOG_LOCATION, LevelFilter::Info)
         .expect("Logfile cannot be opened.");
 }
-// TODO Convert EPD to FEN
 static TEST_RESOURCE: &[&str] = &[
     "r1bqk1r1/1p1p1n2/p1n2pN1/2p1b2Q/2P1Pp2/1PN5/PB4PP/R4RK1 w q - - bm Rxf4",
     "r1n2N1k/2n2K1p/3pp3/5Pp1/b5R1/8/1PPP4/8 w - - bm Ng6",
