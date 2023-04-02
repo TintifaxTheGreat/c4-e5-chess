@@ -1,7 +1,8 @@
-use super::{constants::*, pvs::Pvs, types::*};
+use super::{constants::*, pvs::Pvs, store::Store, types::*};
 use chess::{Board, ChessMove, MoveGen};
 use core::time::Duration;
 use log::info;
+use rayon::prelude::*;
 use std::{
     mem,
     str::FromStr,
@@ -11,7 +12,6 @@ use std::{
     },
     thread::{self, JoinHandle},
 };
-use rayon::prelude::*;
 
 pub struct Game {
     pub max_depth: Depth,
@@ -20,6 +20,7 @@ pub struct Game {
     pub move_number: MoveNumber,
     pub playing: Arc<AtomicBool>,
     pub nodes_count: u64,
+    pub game_store: Store,
 }
 
 impl Game {
@@ -40,6 +41,7 @@ impl Game {
                 },
                 move_number: 0,
                 nodes_count: 0,
+                game_store: Store::new(),
             },
             Err(_) => panic!("FEN not valid"),
         }
@@ -76,25 +78,38 @@ impl Game {
         }
 
         let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
-        'main_loop: while current_depth <= self.max_depth {
-            prior_values.par_iter_mut().for_each(|ScoredMove{mv,sc}| {
-                let mut bresult = mem::MaybeUninit::<Board>::uninit();
-                let mut pvs = Pvs::new();
+        while current_depth <= self.max_depth {
+            if !self.playing.load(Ordering::Relaxed) {
+                info!("Time has expired (1)");
+                break;
+            }
 
-                pvs.history.inc(&self.board);
+            prior_values
+                .par_iter_mut()
+                .for_each(|ScoredMove { mv, sc }| {
+                    let mut bresult = mem::MaybeUninit::<Board>::uninit();
+                    let mut pvs = Pvs::new();
+                    pvs.store.h.clone_from(&self.game_store.h);
 
-                self.board
-                    .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
-                *sc = -pvs.execute(
-                    unsafe { *bresult.as_ptr() },
-                    current_depth,
-                    -beta,
-                    -alpha,
-                    &self.playing,
-                );
+                    pvs.history.inc(&self.board);
 
-                pvs.history.dec(&self.board);
-            });
+                    self.board
+                        .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
+                    *sc = -pvs.execute(
+                        unsafe { *bresult.as_ptr() },
+                        current_depth,
+                        -beta,
+                        -alpha,
+                        &self.playing,
+                    );
+
+                    pvs.history.dec(&self.board);
+                });
+
+            if !self.playing.load(Ordering::Relaxed) {
+                info!("Time has expired (2)");
+                break;
+            }
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
 
@@ -125,26 +140,19 @@ impl Game {
                     }
                     prior_values.truncate(cut_index);
                 }
-            }
-
-            /*
-            for i in 0..prior_values.len() {
-                info!(
-                    "....{0} {1}",
-                    prior_values[i].mv.to_string(),
-                    prior_values[i].sc,
-                );
-            }
-
+            } //TODO remove debugging code
+            prior_values.iter().for_each(|ScoredMove { mv, sc }| {
+                info!("....{0} {1}", mv.to_string(), sc,);
+            });
             info!(
                 "Current Depth: {0}, Node Count: {1}",
                 current_depth, self.nodes_count
             );
-            */
+
             current_depth += 1;
         }
-        //pvs.store //TODO
-        //    .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
+        self.game_store
+            .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
         best_move
     }
 }

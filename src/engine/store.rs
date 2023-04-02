@@ -3,14 +3,14 @@ use chess::{Board, ChessMove};
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
+#[derive(Clone)]
 pub struct Item {
     depth: Depth,
     value: MoveScore,
     chessmove: ChessMove,
 }
-
 pub struct Store {
-    h: HashMap<u64, Item>,
+    pub h: HashMap<u64, Item>, // TODO field should stay private
 }
 
 impl Store {

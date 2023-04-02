@@ -16,17 +16,17 @@ use std::{
 };
 
 pub struct Pvs {
-    pub store: Store,
     pub history: History,
     pub node_count: u64,
+    pub store: Store,
 }
 
 impl Pvs {
     pub fn new() -> Self {
         Self {
-            store: Store::new(),
             history: History::new(),
             node_count: 0,
+            store: Store::new(),
         }
     }
 
