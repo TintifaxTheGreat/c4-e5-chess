@@ -1,4 +1,6 @@
-use super::{constants::*, pvs::Pvs, store::Store, types::*, history::History};
+use super::{
+    constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, store::Store, types::*,
+};
 use chess::{Board, ChessMove, MoveGen};
 use core::time::Duration;
 use log::info;
@@ -19,7 +21,7 @@ pub struct Game {
     pub move_time: MoveTime, // in Milliseconds
     pub move_number: MoveNumber,
     pub playing: Arc<AtomicBool>,
-    pub nodes_count: u64,
+    pub node_count: u64,
     pub game_store: Store,
     pub game_history: History,
 }
@@ -41,7 +43,7 @@ impl Game {
                     move_time
                 },
                 move_number: 0,
-                nodes_count: 0,
+                node_count: 0,
                 game_store: Store::new(),
                 game_history: History::new(),
             },
@@ -52,14 +54,10 @@ impl Game {
         self.playing.store(true, Ordering::Relaxed);
         let playing_clone = self.playing.clone();
         let move_time = self.move_time;
-        let handle = thread::spawn(move || {
+        thread::spawn(move || {
             thread::sleep(Duration::from_millis(move_time));
             playing_clone.store(false, Ordering::Relaxed);
-        });
-
-        self.nodes_count = 0; // TODO this belongs elsewhere
-
-        handle
+        })
     }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
@@ -69,25 +67,27 @@ impl Game {
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore = MIN_INT;
         let mut worst_value: MoveScore;
-        let mut moves = MoveGen::new_legal(&self.board);
+        //let mut moves = MoveGen::new_legal(&self.board);
+        let mut prior_values = MoveGen::get_legal_sorted(&self.board, false, None);
 
         self.set_timer();
+        self.node_count = 0;
 
-        if moves.len() == 1 {
-            return Some(moves.next().unwrap());
+        if prior_values.len() == 1 {
+            return Some(prior_values[0].mv);
         }
 
-        let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
         while current_depth <= self.max_depth {
-            prior_values
-                .par_iter_mut()
-                .for_each(|ScoredMove { mv, sc }| {
+            prior_values.par_iter_mut().for_each(
+                |AnnotatedMove {
+                     mv, sc, node_count, ..
+                 }| {
                     let mut bresult = mem::MaybeUninit::<Board>::uninit();
                     let mut pvs = Pvs::new();
                     pvs.store.h.clone_from(&self.game_store.h);
                     pvs.history.h.clone_from(&self.game_history.h);
-
                     pvs.history.inc(&self.board);
+
                     self.board
                         .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
                     *sc = -pvs.execute(
@@ -97,8 +97,11 @@ impl Game {
                         -alpha,
                         &self.playing,
                     );
+
                     pvs.history.dec(&self.board);
-                });
+                    *node_count = pvs.node_count;
+                },
+            );
 
             if !self.playing.load(Ordering::Relaxed) {
                 info!("Time has expired");
@@ -116,6 +119,17 @@ impl Game {
                 );
                 break;
             }
+            // Add to node count
+            self.node_count += prior_values.iter().fold(
+                0,
+                |acc,
+                 AnnotatedMove {
+                     mv: _,
+                     sc: _,
+                     node_count: nc,
+                     ..
+                 }| acc + nc,
+            );
 
             // Forward pruning
             if current_depth >= FORWARD_PRUNING_DEPTH_START {
@@ -135,12 +149,14 @@ impl Game {
                     prior_values.truncate(cut_index);
                 }
             } //TODO remove debugging code
-            prior_values.iter().for_each(|ScoredMove { mv, sc }| {
-                info!("....{0} {1}", mv.to_string(), sc,);
-            });
+            prior_values
+                .iter()
+                .for_each(|AnnotatedMove { mv, sc, .. }| {
+                    info!("....{0} {1}", mv.to_string(), sc,);
+                });
             info!(
                 "Current Depth: {0}, Node Count: {1}",
-                current_depth, self.nodes_count
+                current_depth, self.node_count
             );
 
             current_depth += 1;

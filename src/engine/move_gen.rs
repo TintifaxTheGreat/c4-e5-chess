@@ -22,7 +22,12 @@ impl MoveGenPrime for MoveGen {
 
         iterable.set_iterator_mask(*targets);
         for mv in &mut iterable {
-            result.push(AnnotatedMove { mv, capture: true });
+            result.push(AnnotatedMove {
+                mv,
+                sc: 0,
+                capture: true,
+                node_count: 0,
+            });
         }
 
         if captures_only {
@@ -31,7 +36,12 @@ impl MoveGenPrime for MoveGen {
 
         iterable.set_iterator_mask(!EMPTY);
         for mv in &mut iterable {
-            result.push(AnnotatedMove { mv, capture: false });
+            result.push(AnnotatedMove {
+                mv,
+                sc: 0,
+                capture: false,
+                node_count: 0,
+            });
         }
 
         if let Some(mv) = old_move {

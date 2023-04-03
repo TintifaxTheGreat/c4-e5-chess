@@ -212,7 +212,7 @@ impl Cli {
                     .board
                     .make_move(m, &mut unsafe { *bresult.as_mut_ptr() });
                 let result = format!("bestmove {}", m);
-                info!("{} nodes examined.", self.game.nodes_count);
+                info!("{} nodes examined.", self.game.node_count);
                 self.send_string(result.as_str());
             }
             None => error!("No valid move found"),

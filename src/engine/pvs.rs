@@ -66,7 +66,6 @@ impl Pvs {
         if depth < 1 {
             self.node_count += 1;
             return evaluate::evaluate(&board);
-            // TODO: Quiescence search causes issues;
         }
 
         let moves = children.iter();
