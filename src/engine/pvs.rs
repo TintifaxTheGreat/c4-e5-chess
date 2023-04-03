@@ -1,6 +1,6 @@
 use super::{
     constants::{MATE, MIN_INT},
-    evaluate::evaluate,
+    evaluate,
     history::History,
     move_gen::MoveGenPrime,
     store::Store,
@@ -65,9 +65,8 @@ impl Pvs {
 
         if depth < 1 {
             self.node_count += 1;
-            return evaluate(&board);
-            // TODO: Quiescence search causes issues
-            // return quiesce::quiesce(board, alpha, beta, playing, stop_time, node_count);
+            return evaluate::evaluate(&board);
+            // TODO: Quiescence search causes issues;
         }
 
         let moves = children.iter();
@@ -95,7 +94,7 @@ impl Pvs {
                 );
 
                 if value > score {
-                    if alpha < value && value < beta && depth > 2 {
+                    if alpha < value && value < beta {
                         score = -self.execute(
                             unsafe { *bresult.as_ptr() },
                             depth - 1,

@@ -1,4 +1,4 @@
-use super::{constants::*, pvs::Pvs, store::Store, types::*};
+use super::{constants::*, pvs::Pvs, store::Store, types::*, history::History};
 use chess::{Board, ChessMove, MoveGen};
 use core::time::Duration;
 use log::info;
@@ -21,6 +21,7 @@ pub struct Game {
     pub playing: Arc<AtomicBool>,
     pub nodes_count: u64,
     pub game_store: Store,
+    pub game_history: History,
 }
 
 impl Game {
@@ -42,6 +43,7 @@ impl Game {
                 move_number: 0,
                 nodes_count: 0,
                 game_store: Store::new(),
+                game_history: History::new(),
             },
             Err(_) => panic!("FEN not valid"),
         }
@@ -65,7 +67,7 @@ impl Game {
         let beta = MAX_INT;
         let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
-        let mut best_value: MoveScore;
+        let mut best_value: MoveScore = MIN_INT;
         let mut worst_value: MoveScore;
         let mut moves = MoveGen::new_legal(&self.board);
 
@@ -83,9 +85,9 @@ impl Game {
                     let mut bresult = mem::MaybeUninit::<Board>::uninit();
                     let mut pvs = Pvs::new();
                     pvs.store.h.clone_from(&self.game_store.h);
+                    pvs.history.h.clone_from(&self.game_history.h);
 
                     pvs.history.inc(&self.board);
-
                     self.board
                         .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
                     *sc = -pvs.execute(
@@ -95,7 +97,6 @@ impl Game {
                         -alpha,
                         &self.playing,
                     );
-
                     pvs.history.dec(&self.board);
                 });
 
@@ -144,8 +145,12 @@ impl Game {
 
             current_depth += 1;
         }
-        self.game_store
-            .put(current_depth - 1, alpha, &self.board, &best_move.unwrap());
+        self.game_store.put(
+            current_depth - 1,
+            best_value,
+            &self.board,
+            &best_move.unwrap(),
+        );
         best_move
     }
 }

@@ -1,6 +1,6 @@
 
-* Forward pruning: don't prune checks and captures
 * Fix node count
+* Fix history (3 times repetition)
 * Config logger
 * Add readme
 

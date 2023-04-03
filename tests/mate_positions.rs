@@ -27,6 +27,7 @@ static TEST_RESOURCE: &[&str] = &[
 #[test_case(2)]
 #[test_case(3)]
 #[test_case(4)]
+//#[test_case(5)]
 #[serial]
 fn test_mate_position(i: usize) {
     let str: Vec<&str> = TEST_RESOURCE[i].split(",").collect();

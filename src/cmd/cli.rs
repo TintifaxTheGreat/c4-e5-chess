@@ -104,6 +104,7 @@ impl Cli {
                             let mut result = Board::default();
                             match ChessMove::from_str(move_string) {
                                 Ok(m) => {
+                                    self.game.game_history.inc(&self.game.board);
                                     self.game.board.make_move(m, &mut result);
                                     self.game.board = result;
                                     if self.game.board.side_to_move() == Color::Black {
@@ -205,9 +206,11 @@ impl Cli {
         match self.game.find_move() {
             Some(m) => {
                 let mut bresult = mem::MaybeUninit::<Board>::uninit();
-                unsafe {
-                    let _ = &self.game.board.make_move(m, &mut *bresult.as_mut_ptr());
-                }
+                self.game.game_history.inc(&self.game.board);
+                let _ = &self
+                    .game
+                    .board
+                    .make_move(m, &mut unsafe { *bresult.as_mut_ptr() });
                 let result = format!("bestmove {}", m);
                 info!("{} nodes examined.", self.game.nodes_count);
                 self.send_string(result.as_str());
