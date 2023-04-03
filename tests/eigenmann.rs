@@ -1,4 +1,17 @@
-// test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.18s
+// pruning at 2
+// 75%: test result: FAILED. 12 passed; 99 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.10s
+// pruning at 3
+// 75%: test result: FAILED. 12 passed; 99 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.10s
+// pruning at 4
+// 50%: test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.10s
+// 75%: test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.18s
+// 60%: test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.11s
+// 68%: test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.10s
+// 85%: test result: FAILED. 10 passed; 101 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.11s
+// pruning at 5
+// 75%: test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1575.13s
+
+
 
 extern crate c4e5r;
 

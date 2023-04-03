@@ -77,11 +77,6 @@ impl Game {
 
         let mut prior_values: Vec<ScoredMove> = moves.map(|mv| ScoredMove { mv, sc: 0 }).collect();
         while current_depth <= self.max_depth {
-            if !self.playing.load(Ordering::Relaxed) {
-                info!("Time has expired (1)");
-                break;
-            }
-
             prior_values
                 .par_iter_mut()
                 .for_each(|ScoredMove { mv, sc }| {
@@ -105,7 +100,7 @@ impl Game {
                 });
 
             if !self.playing.load(Ordering::Relaxed) {
-                info!("Time has expired (2)");
+                info!("Time has expired");
                 break;
             }
 
@@ -122,14 +117,14 @@ impl Game {
             }
 
             // Forward pruning
-            if current_depth >= LATE_PRUNING_DEPTH_START {
+            if current_depth >= FORWARD_PRUNING_DEPTH_START {
                 let moves_count = prior_values.len();
                 let mut cut_index = moves_count;
                 worst_value = prior_values[moves_count - 1].sc;
                 if worst_value < best_value {
                     for (i, pv) in prior_values.iter().enumerate().skip(3) {
                         if (100 * (pv.sc - worst_value) / (best_value - worst_value))
-                            < LATE_PRUNING_PERCENT
+                            < FORWARD_PRUNING_PERCENT
                         {
                             cut_index = i;
                             info!("cut at {}", i);
