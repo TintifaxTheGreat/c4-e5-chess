@@ -4,7 +4,7 @@ use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
 pub struct History {
-    h: HashMap<u64, BoardHistory>,
+    pub h: HashMap<u64, BoardHistory>,
 }
 
 impl History {

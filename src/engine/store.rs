@@ -3,14 +3,14 @@ use chess::{Board, ChessMove};
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
+#[derive(Clone)]
 pub struct Item {
     depth: Depth,
     value: MoveScore,
     chessmove: ChessMove,
 }
-
 pub struct Store {
-    h: HashMap<u64, Item>,
+    pub h: HashMap<u64, Item>, // TODO field should stay private
 }
 
 impl Store {
@@ -39,8 +39,6 @@ impl Store {
     }
 
     pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(ChessMove, MoveScore, bool)> {
-        // TODO why do we have to use mutable? --> Change implementation!
-
         let key = b.get_hash();
         match &self.h.entry(key) {
             Occupied(val) => {
