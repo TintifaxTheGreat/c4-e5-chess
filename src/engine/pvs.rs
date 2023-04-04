@@ -39,7 +39,7 @@ impl Pvs {
         playing: &Arc<AtomicBool>,
     ) -> MoveScore {
         let mut best_move: Option<ChessMove> = None;
-        let mut score: MoveScore = MIN_INT;
+        let mut best_value: MoveScore = MIN_INT;
         let mut value: MoveScore;
 
         if !playing.load(Ordering::Relaxed) {
@@ -64,6 +64,7 @@ impl Pvs {
         }
 
         if depth < 1 {
+            // TODO put this further up, but still consider check mate
             self.node_count += 1;
             return evaluate::evaluate(&board);
         }
@@ -76,7 +77,7 @@ impl Pvs {
 
             let _ = &board.make_move(child.mv, unsafe { &mut *bresult.as_mut_ptr() });
             if i == 0 {
-                score = -self.execute(
+                best_value = -self.execute(
                     unsafe { *bresult.as_ptr() },
                     depth - 1,
                     -beta,
@@ -92,9 +93,9 @@ impl Pvs {
                     playing,
                 );
 
-                if value > score {
+                if value > best_value {
                     if alpha < value && value < beta {
-                        score = -self.execute(
+                        best_value = -self.execute(
                             unsafe { *bresult.as_ptr() },
                             depth - 1,
                             -beta,
@@ -102,26 +103,28 @@ impl Pvs {
                             playing,
                         )
                     } else {
-                        score = value;
+                        if value > best_value {
+                            best_value = value;
+                        }
                     }
                 }
             }
             self.history.dec(&board);
 
-            if score >= beta {
+            if best_value >= beta {
                 best_move = Some(child.mv);
                 break;
             }
-            if score > alpha {
-                alpha = score;
+            if best_value > alpha {
+                alpha = best_value;
                 best_move = Some(child.mv);
             }
         }
 
         if let Some(bm) = best_move {
-            self.store.put(depth - 1, score, &board, &bm);
+            self.store.put(depth - 1, best_value, &board, &bm);
         }
-        score
+        best_value
     }
 }
 

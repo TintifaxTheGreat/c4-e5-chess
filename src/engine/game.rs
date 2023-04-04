@@ -132,7 +132,7 @@ impl Game {
             );
 
             // Forward pruning
-            if current_depth >= FORWARD_PRUNING_DEPTH_START {
+            if (current_depth >= FORWARD_PRUNING_DEPTH_START) && (current_depth % 2 == 0) {
                 let moves_count = prior_values.len();
                 let mut cut_index = moves_count;
                 worst_value = prior_values[moves_count - 1].sc;
