@@ -132,7 +132,7 @@ impl Game {
             );
 
             // Forward pruning
-            if (current_depth >= FORWARD_PRUNING_DEPTH_START) && (current_depth % 2 == 0) {
+            if (current_depth >= FORWARD_PRUNING_DEPTH_START) {
                 let moves_count = prior_values.len();
                 let mut cut_index = moves_count;
                 worst_value = prior_values[moves_count - 1].sc;
@@ -160,6 +160,9 @@ impl Game {
             );
 
             current_depth += 1;
+            if current_depth >1 {
+                current_depth += 1;
+            }
         }
         self.game_store.put(
             current_depth - 1,

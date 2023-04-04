@@ -26,7 +26,7 @@ pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 pub const MAX_INT: MoveScore = 1_000_000;
 pub const MIN_INT: MoveScore = -1_000_000;
 pub const INIT_MAX_DEPTH: Depth = 99;
-pub const FORWARD_PRUNING_PERCENT: MoveScore = 75; //TODO was 75
+pub const FORWARD_PRUNING_PERCENT: MoveScore = 85; //TODO was 75
 pub const FORWARD_PRUNING_DEPTH_START: Depth = 4; //TODO was 4
 
 // Game
