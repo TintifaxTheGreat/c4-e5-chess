@@ -1,4 +1,4 @@
-// test result: FAILED. 13 passed; 98 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1590.09s
+// test result: FAILED. 16 passed; 95 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1590.12s
 
 extern crate c4e5r;
 

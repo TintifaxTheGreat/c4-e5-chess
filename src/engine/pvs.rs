@@ -39,10 +39,17 @@ impl Pvs {
         playing: &Arc<AtomicBool>,
     ) -> MoveScore {
         let mut best_move: Option<ChessMove> = None;
-        let mut score: MoveScore = MIN_INT;
+        let mut best_value: MoveScore = MIN_INT;
         let mut value: MoveScore;
 
         if !playing.load(Ordering::Relaxed) {
+            return 0;
+        }
+
+        if board.status() != BoardStatus::Ongoing {
+            if board.status() == BoardStatus::Checkmate {
+                return -MATE - i32::from(depth);
+            }
             return 0;
         }
 
@@ -50,24 +57,16 @@ impl Pvs {
             return 0;
         }
 
+        if depth < 1 {
+            self.node_count += 1;
+            return evaluate::evaluate(&board);
+        }
+
         let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
             Some((_, v, true)) => return v,
             Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, false, Some(mv)),
             None => MoveGen::get_legal_sorted(&board, false, None),
         };
-
-        if children.is_empty() {
-            if board.status() == BoardStatus::Checkmate {
-                return -MATE - i32::from(depth);
-            }
-            return 0;
-        }
-
-        if depth < 1 {
-            self.node_count += 1;
-            return evaluate::evaluate(&board);
-            // TODO: Quiescence search causes issues;
-        }
 
         let moves = children.iter();
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
@@ -77,7 +76,7 @@ impl Pvs {
 
             let _ = &board.make_move(child.mv, unsafe { &mut *bresult.as_mut_ptr() });
             if i == 0 {
-                score = -self.execute(
+                best_value = -self.execute(
                     unsafe { *bresult.as_ptr() },
                     depth - 1,
                     -beta,
@@ -93,36 +92,36 @@ impl Pvs {
                     playing,
                 );
 
-                if value > score {
+                if value > best_value {
                     if alpha < value && value < beta {
-                        score = -self.execute(
+                        best_value = -self.execute(
                             unsafe { *bresult.as_ptr() },
                             depth - 1,
                             -beta,
                             -value,
                             playing,
                         )
-                    } else {
-                        score = value;
+                    } else if value > best_value {
+                        best_value = value;
                     }
                 }
             }
             self.history.dec(&board);
 
-            if score >= beta {
+            if best_value >= beta {
                 best_move = Some(child.mv);
                 break;
             }
-            if score > alpha {
-                alpha = score;
+            if best_value > alpha {
+                alpha = best_value;
                 best_move = Some(child.mv);
             }
         }
 
         if let Some(bm) = best_move {
-            self.store.put(depth - 1, score, &board, &bm);
+            self.store.put(depth - 1, best_value, &board, &bm);
         }
-        score
+        best_value
     }
 }
 
