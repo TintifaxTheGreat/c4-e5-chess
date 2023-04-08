@@ -101,10 +101,8 @@ impl Pvs {
                             -value,
                             playing,
                         )
-                    } else {
-                        if value > best_value {
-                            best_value = value;
-                        }
+                    } else if value > best_value {
+                        best_value = value;
                     }
                 }
             }

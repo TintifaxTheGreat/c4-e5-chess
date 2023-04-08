@@ -18,7 +18,6 @@ pub const CB_RANK_6: u64 = 0xff0000000000;
 pub const CB_RANK_7: u64 = 0xff000000000000;
 pub const CB_RANK_8: u64 = 0xff00000000000000;
 
-
 // FEN
 pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -26,8 +25,9 @@ pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 pub const MAX_INT: MoveScore = 1_000_000;
 pub const MIN_INT: MoveScore = -1_000_000;
 pub const INIT_MAX_DEPTH: Depth = 99;
-pub const FORWARD_PRUNING_PERCENT: MoveScore = 85; //TODO was 75
-pub const FORWARD_PRUNING_DEPTH_START: Depth = 4; //TODO was 4
+pub const FORWARD_PRUNING_DEPTH_START: Depth = 4;
+pub const FORWARD_PRUNING_MINIMUM: usize = 3;
+pub const FORWARD_PRUNING_RATIO: usize = 4;
 
 // Game
 pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds

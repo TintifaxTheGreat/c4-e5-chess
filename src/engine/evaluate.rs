@@ -4,7 +4,6 @@ use super::{
     types::*,
 };
 use chess::{Board, Color, Piece};
-use log::info;
 
 pub fn evaluate(b: &Board) -> MoveScore {
     let mut value: MoveScore = 0;
@@ -42,7 +41,7 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value += ((white_pawns & CB_RANK_6).count_ones() * 250) as MoveScore; //TODO was 50
     value -= ((black_pawns & CB_RANK_3).count_ones() * 250) as MoveScore;
 
-    value += ((white_pawns & CB_RANK_7).count_ones() * 650) as MoveScore;  //TODO was 300
+    value += ((white_pawns & CB_RANK_7).count_ones() * 650) as MoveScore; //TODO was 300
     value -= ((black_pawns & CB_RANK_2).count_ones() * 650) as MoveScore;
 
     // Rules concerning knights

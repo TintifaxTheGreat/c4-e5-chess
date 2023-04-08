@@ -6,6 +6,7 @@ use core::time::Duration;
 use log::info;
 use rayon::prelude::*;
 use std::{
+    cmp::max,
     mem,
     str::FromStr,
     sync::{
@@ -132,20 +133,14 @@ impl Game {
             );
 
             // Forward pruning
-            if (current_depth >= FORWARD_PRUNING_DEPTH_START) {
+            if current_depth >= FORWARD_PRUNING_DEPTH_START {
                 let moves_count = prior_values.len();
-                let mut cut_index = moves_count;
+
                 worst_value = prior_values[moves_count - 1].sc;
                 if worst_value < best_value {
-                    for (i, pv) in prior_values.iter().enumerate().skip(3) {
-                        if (100 * (pv.sc - worst_value) / (best_value - worst_value))
-                            < FORWARD_PRUNING_PERCENT
-                        {
-                            cut_index = i;
-                            info!("cut at {}", i);
-                            break;
-                        }
-                    }
+                    let cut_index =
+                        max(FORWARD_PRUNING_MINIMUM, moves_count / FORWARD_PRUNING_RATIO);
+                    info!("cut at {}", cut_index);
                     prior_values.truncate(cut_index);
                 }
             } //TODO remove debugging code
@@ -160,9 +155,6 @@ impl Game {
             );
 
             current_depth += 1;
-            if current_depth >1 {
-                current_depth += 1;
-            }
         }
         self.game_store.put(
             current_depth - 1,
