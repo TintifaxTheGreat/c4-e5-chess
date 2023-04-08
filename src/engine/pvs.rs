@@ -46,8 +46,20 @@ impl Pvs {
             return 0;
         }
 
+        if board.status() != BoardStatus::Ongoing {
+            if board.status() == BoardStatus::Checkmate {
+                return -MATE - i32::from(depth);
+            }
+            return 0;
+        }
+
         if self.history.get(&board) > 2 {
             return 0;
+        }
+
+        if depth < 1 {
+            self.node_count += 1;
+            return evaluate::evaluate(&board);
         }
 
         let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
@@ -55,19 +67,6 @@ impl Pvs {
             Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, false, Some(mv)),
             None => MoveGen::get_legal_sorted(&board, false, None),
         };
-
-        if children.is_empty() {
-            if board.status() == BoardStatus::Checkmate {
-                return -MATE - i32::from(depth);
-            }
-            return 0;
-        }
-
-        if depth < 1 {
-            // TODO put this further up, but still consider check mate
-            self.node_count += 1;
-            return evaluate::evaluate(&board);
-        }
 
         let moves = children.iter();
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
