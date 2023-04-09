@@ -1,10 +1,6 @@
 - Config logger
 - Add readme
-
-- Improve evaluation
-  - Double pawns etc.
-  - Rook on 7th rank
-- Re-introduce quiescense (?)
+- Stabilize search (quiescense)
 
 - Add comments
 - Add mate finder
