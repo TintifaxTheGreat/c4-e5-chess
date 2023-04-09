@@ -6,7 +6,7 @@ use core::time::Duration;
 use log::info;
 use rayon::prelude::*;
 use std::{
-    cmp::max,
+    cmp::{max, min},
     mem,
     str::FromStr,
     sync::{
@@ -62,17 +62,35 @@ impl Game {
     }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
+        
+        fn stabilize_search_results(
+            old: &Vec<AnnotatedMove>,
+            new: &Vec<AnnotatedMove>,
+        ) -> Vec<AnnotatedMove> {
+            let mut foo: Vec<AnnotatedMove> = new.clone();
+
+            let diff_mean = foo
+                .iter()
+                .enumerate()
+                .fold(0, |acc, (i, v)| acc + (v.sc - old[i].sc))
+                / foo.len() as i32;
+
+            foo.iter_mut().enumerate().for_each(|(i, v)| {
+                v.sc = min(v.sc + diff_mean, old[i].sc);
+            });
+            foo
+        }
+
         let alpha = MIN_INT;
         let beta = MAX_INT;
         let mut current_depth: Depth = 0;
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore = MIN_INT;
         let mut worst_value: MoveScore;
-        //let mut moves = MoveGen::new_legal(&self.board);
         let mut prior_values = MoveGen::get_legal_sorted(&self.board, false, None);
+        let mut prior_values_old: Vec<AnnotatedMove> = vec![];
 
         self.set_timer();
-        self.node_count = 0;
 
         if prior_values.len() == 1 {
             return Some(prior_values[0].mv);
@@ -107,6 +125,10 @@ impl Game {
             if !self.playing.load(Ordering::Relaxed) {
                 info!("Time has expired");
                 break;
+            }
+
+            if current_depth % 2 == 1 {
+                prior_values = stabilize_search_results(&prior_values_old, &prior_values);
             }
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
@@ -155,6 +177,7 @@ impl Game {
             );
 
             current_depth += 1;
+            prior_values_old = prior_values.clone();
         }
         self.game_store.put(
             current_depth - 1,
