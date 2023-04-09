@@ -1,4 +1,4 @@
-use super::types::*;
+use super::{constants::CB_RANK_1, types::*};
 use chess::{Board, ChessMove, Color, MoveGen, Piece};
 use std::cmp::max;
 
@@ -51,6 +51,10 @@ pub fn half_open_files(b: &Board) -> u64 {
     (white & !black) | (!white & black)
 }
 
+pub fn multiple_on_file(pp: u64) -> u32 {
+    pp.count_ones() - (file_fill(pp) & CB_RANK_1).count_ones()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -75,6 +79,13 @@ mod tests {
         let board = Board::from_str("8/7k/8/5r2/1KN5/2R5/8/8 w - - 0 1")?;
         assert_eq!(kings_distance(&board), 6);
         Ok(())
+    }
+
+    #[test]
+    fn test_multiple_on_file() {
+        assert_eq!(multiple_on_file(8659230720), 1);
+        assert_eq!(multiple_on_file(36028805676099584), 0);
+        assert_eq!(multiple_on_file(36028805735055360), 4);
     }
 
     #[test]

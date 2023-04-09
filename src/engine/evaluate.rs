@@ -1,6 +1,6 @@
 use super::{
     constants::*,
-    helpers::{defending_kings_moves_count, half_open_files, kings_distance, open_files},
+    helpers::{defending_kings_moves_count, half_open_files, kings_distance, open_files, multiple_on_file},
     types::*,
 };
 use chess::{Board, Color, Piece};
@@ -43,6 +43,9 @@ pub fn evaluate(b: &Board) -> MoveScore {
 
     value += ((white_pawns & CB_RANK_7).count_ones() * 650) as MoveScore; //TODO was 300
     value -= ((black_pawns & CB_RANK_2).count_ones() * 650) as MoveScore;
+
+    value -= (multiple_on_file(white_pawns) * 30) as MoveScore;
+    value += (multiple_on_file(black_pawns) * 30) as MoveScore;
 
     // Rules concerning knights
     value += (white_knights.count_ones() * 600) as MoveScore;
