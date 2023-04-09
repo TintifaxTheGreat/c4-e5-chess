@@ -62,23 +62,22 @@ impl Game {
     }
 
     pub fn find_move(&mut self) -> Option<ChessMove> {
-        
-        fn stabilize_search_results(
-            old: &Vec<AnnotatedMove>,
-            new: &Vec<AnnotatedMove>,
+        fn stabilise_search_results(
+            old: &[AnnotatedMove],
+            new: &[AnnotatedMove],
         ) -> Vec<AnnotatedMove> {
-            let mut foo: Vec<AnnotatedMove> = new.clone();
+            let mut new_stabilised: Vec<AnnotatedMove> = new.to_owned();
 
-            let diff_mean = foo
+            let diff_mean = new_stabilised
                 .iter()
                 .enumerate()
-                .fold(0, |acc, (i, v)| acc + (v.sc - old[i].sc))
-                / foo.len() as i32;
+                .fold(0, |acc, (i, v)| acc + (old[i].sc - v.sc))
+                / new_stabilised.len() as i32;
 
-            foo.iter_mut().enumerate().for_each(|(i, v)| {
+            new_stabilised.iter_mut().enumerate().for_each(|(i, v)| {
                 v.sc = min(v.sc + diff_mean, old[i].sc);
             });
-            foo
+            new_stabilised
         }
 
         let alpha = MIN_INT;
@@ -128,7 +127,7 @@ impl Game {
             }
 
             if current_depth % 2 == 1 {
-                prior_values = stabilize_search_results(&prior_values_old, &prior_values);
+                prior_values = stabilise_search_results(&prior_values_old, &prior_values);
             }
 
             prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
