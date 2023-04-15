@@ -1,6 +1,5 @@
-- Config logger
 - Add readme
-- Stabilize search (quiescense)
+- King safety (pawns before king)
 
 - Add comments
 - Add mate finder
