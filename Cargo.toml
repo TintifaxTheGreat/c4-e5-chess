@@ -1,13 +1,13 @@
 [package]
 name = "c4e5r"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 chess = "3.2"
 timer = "0.2"
 chrono = "0.4"
-log = "0.4"
+log = { version = "0.4", features = ["release_max_level_off"] }
 simple-logging = "2.0"
 hashbrown = "0.13"
 rayon = "1.7"

@@ -5,7 +5,7 @@ use log::LevelFilter;
 use serial_test::serial;
 use test_case::test_case;
 
-const LOG_LOCATION: &str = "/home/eugen/work/rust/c4e5r/test.log";
+const LOG_LOCATION: &str = "c4e5r.log";
 
 #[cfg(test)]
 #[ctor::ctor]

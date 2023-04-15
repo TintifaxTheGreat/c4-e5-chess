@@ -91,8 +91,8 @@ pub fn evaluate(b: &Board) -> MoveScore {
         value += ((white_queens & CB_GOOD_QUEEN).count_ones() * 30) as MoveScore;
         value -= ((black_queens & CB_GOOD_QUEEN).count_ones() * 30) as MoveScore;
 
-        value += ((white_king & CB_SAFE_KING).count_ones() * 130) as MoveScore;
-        value -= ((black_king & CB_SAFE_KING).count_ones() * 130) as MoveScore;
+        value += ((white_king & CB_SAFE_KING).count_ones() * 150) as MoveScore;
+        value -= ((black_king & CB_SAFE_KING).count_ones() * 150) as MoveScore;
     }
 
     let defending_king: u64;

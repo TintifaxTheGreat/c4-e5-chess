@@ -86,7 +86,7 @@ impl Game {
         let mut best_move: Option<ChessMove> = None;
         let mut best_value: MoveScore = MIN_INT;
         let mut worst_value: MoveScore;
-        let mut prior_values = MoveGen::get_legal_sorted(&self.board, false, None);
+        let mut prior_values = MoveGen::get_legal_sorted(&self.board, None);
         let mut prior_values_old: Vec<AnnotatedMove> = vec![];
 
         self.set_timer();

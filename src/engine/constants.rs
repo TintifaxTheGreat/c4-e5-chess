@@ -26,7 +26,7 @@ pub const MAX_INT: MoveScore = 1_000_000;
 pub const MIN_INT: MoveScore = -1_000_000;
 pub const INIT_MAX_DEPTH: Depth = 99;
 pub const FORWARD_PRUNING_DEPTH_START: Depth = 4;
-pub const FORWARD_PRUNING_MINIMUM: usize = 3;
+pub const FORWARD_PRUNING_MINIMUM: usize = 4;
 pub const FORWARD_PRUNING_RATIO: usize = 4;
 
 // Game

@@ -64,8 +64,8 @@ impl Pvs {
 
         let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
             Some((_, v, true)) => return v,
-            Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, false, Some(mv)),
-            None => MoveGen::get_legal_sorted(&board, false, None),
+            Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, Some(mv)),
+            None => MoveGen::get_legal_sorted(&board, None),
         };
 
         let moves = children.iter();

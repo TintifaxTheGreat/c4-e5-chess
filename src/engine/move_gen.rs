@@ -2,20 +2,12 @@ use super::types::*;
 use chess::{Board, ChessMove, MoveGen, EMPTY};
 
 pub trait MoveGenPrime {
-    fn get_legal_sorted(
-        board: &Board,
-        captures_only: bool,
-        old_move: Option<ChessMove>,
-    ) -> Vec<AnnotatedMove>;
+    fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove>;
     fn count_legal(board: &Board) -> usize;
 }
 
 impl MoveGenPrime for MoveGen {
-    fn get_legal_sorted(
-        board: &Board,
-        captures_only: bool,
-        old_move: Option<ChessMove>,
-    ) -> Vec<AnnotatedMove> {
+    fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove> {
         let mut result: Vec<AnnotatedMove> = Vec::new();
         let mut iterable = MoveGen::new_legal(board);
         let targets = board.color_combined(!board.side_to_move());
@@ -28,10 +20,6 @@ impl MoveGenPrime for MoveGen {
                 capture: true,
                 node_count: 0,
             });
-        }
-
-        if captures_only {
-            return result;
         }
 
         iterable.set_iterator_mask(!EMPTY);

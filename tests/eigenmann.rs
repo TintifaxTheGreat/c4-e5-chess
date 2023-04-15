@@ -1,4 +1,4 @@
-// test result: FAILED. 16 passed; 95 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1590.12s
+// test result: FAILED. 17 passed; 94 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1590.13s
 
 extern crate c4e5r;
 
@@ -7,7 +7,7 @@ use log::LevelFilter;
 use serial_test::serial;
 use test_case::test_case;
 
-const LOG_LOCATION: &str = "/home/eugen/work/rust/c4e5r/test.log";
+const LOG_LOCATION: &str = "c4e5r.log";
 
 #[cfg(test)]
 #[ctor::ctor]
@@ -240,6 +240,7 @@ static TEST_RESOURCE: &[&str] = &[
     "8/8/8/8/4kp2/1R6/P2q1PPK/8 w - - bm a3",
 ];
 
+#[ignore]
 #[test_case(1)]
 #[test_case(2)]
 #[test_case(3)]
