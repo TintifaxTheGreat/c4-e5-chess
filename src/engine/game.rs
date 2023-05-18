@@ -104,10 +104,10 @@ impl Game {
                     let mut pvs = Pvs::new();
                     pvs.store.h.clone_from(&self.game_store.h);
                     pvs.history.h.clone_from(&self.game_history.h);
-                    pvs.history.inc(&self.board);
 
                     self.board
                         .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
+                    pvs.history.inc(unsafe { &*bresult.as_ptr() });
                     *sc = -pvs.execute(
                         unsafe { *bresult.as_ptr() },
                         current_depth,
@@ -115,8 +115,7 @@ impl Game {
                         -alpha,
                         &self.playing,
                     );
-
-                    pvs.history.dec(&self.board);
+                    pvs.history.dec(unsafe { &*bresult.as_ptr() });
                     *node_count = pvs.node_count;
                 },
             );
