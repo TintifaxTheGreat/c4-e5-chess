@@ -168,7 +168,8 @@ impl Game {
                     info!("cut at {}", cut_index);
                     prior_values.truncate(cut_index);
                 }
-            } //TODO remove debugging code
+            }
+            /*
             prior_values
                 .iter()
                 .for_each(|AnnotatedMove { mv, sc, .. }| {
@@ -178,6 +179,7 @@ impl Game {
                 "Current Depth: {0}, Node Count: {1}",
                 current_depth, self.node_count
             );
+            */
 
             current_depth += 1;
             prior_values_old = prior_values.clone();
