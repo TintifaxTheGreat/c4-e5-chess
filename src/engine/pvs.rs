@@ -72,9 +72,8 @@ impl Pvs {
         let mut bresult = mem::MaybeUninit::<Board>::uninit();
 
         for (i, child) in &mut moves.enumerate() {
-            self.history.inc(&board);
-
             let _ = &board.make_move(child.mv, unsafe { &mut *bresult.as_mut_ptr() });
+            self.history.inc(unsafe { &*bresult.as_ptr() });
             if i == 0 {
                 best_value = -self.execute(
                     unsafe { *bresult.as_ptr() },
@@ -91,7 +90,6 @@ impl Pvs {
                     -alpha,
                     playing,
                 );
-
                 if value > best_value {
                     if alpha < value && value < beta {
                         best_value = -self.execute(
@@ -106,7 +104,7 @@ impl Pvs {
                     }
                 }
             }
-            self.history.dec(&board);
+            self.history.dec(unsafe { &*bresult.as_ptr() });
 
             if best_value >= beta {
                 best_move = Some(child.mv);
