@@ -1,12 +1,15 @@
 use super::types::*;
 use chess::{Board, ChessMove, MoveGen, EMPTY};
 
+/// A trait to extend the move generator of crate Chess.
 pub trait MoveGenPrime {
     fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove>;
     fn count_legal(board: &Board) -> usize;
 }
 
 impl MoveGenPrime for MoveGen {
+    /// Get all legal moves for given position, sort captures first.
+    /// Also takes a proven good move ("old move") to be sorted first.
     fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove> {
         let mut result: Vec<AnnotatedMove> = Vec::new();
         let mut iterable = MoveGen::new_legal(board);
@@ -43,6 +46,7 @@ impl MoveGenPrime for MoveGen {
         result
     }
 
+    /// Calculate number of legal moves in given position.
     fn count_legal(board: &Board) -> usize {
         MoveGen::new_legal(board).count()
     }

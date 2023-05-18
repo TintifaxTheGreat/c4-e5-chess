@@ -5,6 +5,7 @@ use super::{
 };
 use chess::{Board, Color, Piece};
 
+/// A simple static evaluation function for the given board position
 pub fn evaluate(b: &Board) -> MoveScore {
     let mut value: MoveScore = 0;
     let pieces_count = b.combined().count();

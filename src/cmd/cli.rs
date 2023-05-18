@@ -8,12 +8,15 @@ use std::{
     str::{FromStr, SplitWhitespace},
 };
 
+/// An UCI interface to be used with a chess GUI.
+/// See https://en.wikipedia.org/wiki/Universal_Chess_Interface .
 pub struct Cli {
     game: Game,
     tm: TimeManagement,
 }
 
 impl Cli {
+    /// Constructor
     pub fn new() -> Cli {
         Cli {
             game: Default::default(),
@@ -21,6 +24,7 @@ impl Cli {
         }
     }
 
+    /// Main execution loop.
     pub fn execute(&mut self) {
         loop {
             let mut input = String::new();
@@ -63,6 +67,7 @@ impl Cli {
         }
     }
 
+    /// UCI `position` command
     fn position(&mut self, mut args: SplitWhitespace) {
         while let Some(cmd) = args.next() {
             match cmd {
@@ -126,6 +131,7 @@ impl Cli {
         }
     }
 
+    /// UCI `go` command
     fn go(&mut self, mut args: SplitWhitespace) {
         while let Some(cmd) = args.next() {
             match cmd {
@@ -202,6 +208,7 @@ impl Cli {
         self.get_move_from_engine();
     }
 
+    /// Get best move from the engine module.
     fn get_move_from_engine(&mut self) {
         match self.game.find_move() {
             Some(m) => {
@@ -219,23 +226,28 @@ impl Cli {
         }
     }
 
+    /// Send name and author.
     fn send_id(&self) {
         self.send_string("id name C4-E5 Chess");
         self.send_string("id author Eugen Lindorfer");
     }
 
+    /// Send `options`.
     fn send_options(&self) {
         self.send_string("option"); //TODO extend this
     }
 
+    /// Send `uci ok`.
     fn send_uci_ok(&self) {
         self.send_string("uciok");
     }
 
+    /// Send `readyok`.
     fn send_ready_ok(&self) {
         self.send_string("readyok");
     }
 
+    /// Output and log a string.
     fn send_string(&self, s: &str) {
         println!("{}", s);
         info!("|   {}", s);

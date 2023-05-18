@@ -6,8 +6,9 @@ edition = "2021"
 description = "C4-E5 Chess is a UCI compatible chess engine based on the move generator in crate Chess. These features are provided: Parallelised iterative depthening, late move pruning, principal variant search, transposition table."
 readme = "README.md"
 repository = "https://github.com/TintifaxTheGreat/c4-e5-chess"
-license = "MIT"
 license-file = "LICENSE"
+keywords = ["game", "chess"]
+categories = ["games"]
 
 [dependencies]
 chess = "3.2"
