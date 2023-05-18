@@ -3,6 +3,7 @@ use log::{info, LevelFilter};
 mod cmd;
 mod engine;
 
+/// Main function to be used with a UCI chess gui
 fn main() {
     match simple_logging::log_to_file("c4e5r.log", LevelFilter::Info) {
         Ok(_) => {

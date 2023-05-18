@@ -15,6 +15,7 @@ use std::{
     },
 };
 
+/// A principal variant search.
 pub struct Pvs {
     pub history: History,
     pub node_count: u64,
@@ -22,6 +23,7 @@ pub struct Pvs {
 }
 
 impl Pvs {
+    /// Constructor
     pub fn new() -> Self {
         Self {
             history: History::new(),
@@ -30,6 +32,7 @@ impl Pvs {
         }
     }
 
+    /// Execute the search given a board and parameters Alpha and Beta
     pub fn execute(
         &mut self,
         board: Board,

@@ -3,21 +3,27 @@ use chess::{Board, ChessMove};
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
+/// A transposition table.
 #[derive(Clone)]
 pub struct Item {
     depth: Depth,
     value: MoveScore,
     chessmove: ChessMove,
 }
+
+/// A hashmap for use in the transposition table.
 pub struct Store {
     pub h: HashMap<u64, Item>, // TODO field should stay private
 }
 
 impl Store {
+    /// Constructor
     pub fn new() -> Self {
         Self { h: HashMap::new() }
     }
 
+    /// Put a position, its score and depth and the best move into the trasposition table.
+    /// Update the score only if depth is greater than already stored depth.
     pub fn put(&mut self, depth: Depth, value: MoveScore, b: &Board, chessmove: &ChessMove) {
         let key = b.get_hash();
         let item = Item {
@@ -38,6 +44,7 @@ impl Store {
         }
     }
 
+    /// Get a move and its score for the given position.
     pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(ChessMove, MoveScore, bool)> {
         let key = b.get_hash();
         match &self.h.entry(key) {

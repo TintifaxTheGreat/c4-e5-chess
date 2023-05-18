@@ -4,6 +4,7 @@ use chess::Color;
 use log::info;
 use std::cmp::{max, min};
 
+/// A structure holing available time and increment and the number of moves until next time control.
 #[derive(Default)]
 pub struct TimeManagement {
     pub white_time: MoveTime,
@@ -14,6 +15,7 @@ pub struct TimeManagement {
 }
 
 impl TimeManagement {
+    /// Calculate time to be spent for the next move.
     pub fn set_game_time(&mut self, g: &mut Game) {
         fn move_time_fraction(move_number: MoveNumber) -> MoveTime {
             if move_number >= MOVE_LATE_GAME_START {

@@ -2,6 +2,7 @@ use super::{constants::CB_RANK_1, types::*};
 use chess::{Board, ChessMove, Color, MoveGen, Piece};
 use std::cmp::max;
 
+/// Gives the number of available moves for the defending king.
 pub fn defending_kings_moves_count(b: &Board) -> usize {
     match b.null_move() {
         Some(b1) => {
@@ -15,6 +16,7 @@ pub fn defending_kings_moves_count(b: &Board) -> usize {
     }
 }
 
+/// Calculate the distance between both kings.
 pub fn kings_distance(b: &Board) -> MoveScore {
     let wk = b.king_square(Color::White);
     let bk = b.king_square(Color::Black);
@@ -24,33 +26,39 @@ pub fn kings_distance(b: &Board) -> MoveScore {
     )
 }
 
+/// Fill the bitboard to the north of the set field.
 pub fn north_fill(p: u64) -> u64 {
     let mut result = p | (p << 8);
     result = result | (result << 16);
     result | (result << 32)
 }
 
+/// Fill the bitboard to the south of the set field.
 pub fn south_fill(p: u64) -> u64 {
     let mut result = p | (p >> 8);
     result = result | (result >> 16);
     result | (result >> 32)
 }
 
+/// Fill the file of the set field.
 pub fn file_fill(p: u64) -> u64 {
     north_fill(p) | south_fill(p)
 }
 
+/// Give all open files (files without pawns).
 pub fn open_files(b: &Board) -> u64 {
     let pawns = b.pieces(Piece::Pawn).0;
     !file_fill(pawns)
 }
 
+/// Give all half open files (files with own pawn, but no oppisite pawn).
 pub fn half_open_files(b: &Board) -> u64 {
     let white = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::White).0);
     let black = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::Black).0);
     (white & !black) | (!white & black)
 }
 
+/// Give all double or multiple pawns.
 pub fn multiple_on_file(pp: u64) -> u32 {
     pp.count_ones() - (file_fill(pp) & CB_RANK_1).count_ones()
 }

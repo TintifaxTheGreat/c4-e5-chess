@@ -16,6 +16,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+/// A chess game
 pub struct Game {
     pub max_depth: Depth,
     pub board: Board,
@@ -28,6 +29,7 @@ pub struct Game {
 }
 
 impl Game {
+    /// Create a game giving a position as a FEN, max depth and a move time.
     pub fn new(fen: String, max_depth: Depth, move_time: MoveTime) -> Self {
         match Board::from_str(if fen.is_empty() { FEN_START } else { &fen }) {
             Ok(board) => Self {
@@ -51,6 +53,8 @@ impl Game {
             Err(_) => panic!("FEN not valid"),
         }
     }
+
+    /// Set a timer to stop playing after the move time has elapsed.
     pub fn set_timer(&mut self) -> JoinHandle<()> {
         self.playing.store(true, Ordering::Relaxed);
         let playing_clone = self.playing.clone();
@@ -61,6 +65,7 @@ impl Game {
         })
     }
 
+    /// Find the best move
     pub fn find_move(&mut self) -> Option<ChessMove> {
         fn stabilise_search_results(
             old: &[AnnotatedMove],
@@ -163,7 +168,8 @@ impl Game {
                     info!("cut at {}", cut_index);
                     prior_values.truncate(cut_index);
                 }
-            } //TODO remove debugging code
+            }
+            /*
             prior_values
                 .iter()
                 .for_each(|AnnotatedMove { mv, sc, .. }| {
@@ -173,6 +179,7 @@ impl Game {
                 "Current Depth: {0}, Node Count: {1}",
                 current_depth, self.node_count
             );
+            */
 
             current_depth += 1;
             prior_values_old = prior_values.clone();

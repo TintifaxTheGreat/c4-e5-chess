@@ -5,6 +5,7 @@ use super::{
 };
 use chess::{Board, Color, Piece};
 
+/// A simple static evaluation function for the given board position
 pub fn evaluate(b: &Board) -> MoveScore {
     let mut value: MoveScore = 0;
     let pieces_count = b.combined().count();
@@ -38,10 +39,10 @@ pub fn evaluate(b: &Board) -> MoveScore {
     value += ((white_pawns & CB_CENTER_1).count_ones() * 30) as MoveScore;
     value -= ((black_pawns & CB_CENTER_1).count_ones() * 30) as MoveScore;
 
-    value += ((white_pawns & CB_RANK_6).count_ones() * 250) as MoveScore; //TODO was 50
+    value += ((white_pawns & CB_RANK_6).count_ones() * 250) as MoveScore;
     value -= ((black_pawns & CB_RANK_3).count_ones() * 250) as MoveScore;
 
-    value += ((white_pawns & CB_RANK_7).count_ones() * 650) as MoveScore; //TODO was 300
+    value += ((white_pawns & CB_RANK_7).count_ones() * 650) as MoveScore;
     value -= ((black_pawns & CB_RANK_2).count_ones() * 650) as MoveScore;
 
     value -= (multiple_on_file(white_pawns) * 30) as MoveScore;

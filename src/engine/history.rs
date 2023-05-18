@@ -3,15 +3,18 @@ use chess::Board;
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
+/// A counter how often a position has already occured.
 pub struct History {
     pub h: HashMap<u64, BoardHistory>,
 }
 
 impl History {
+    /// Constructor
     pub fn new() -> Self {
         Self { h: HashMap::new() }
     }
 
+    /// Increment counter for given position.
     pub fn inc(&mut self, b: &Board) {
         let key = b.get_hash();
         match &self.h.entry(key) {
@@ -25,6 +28,7 @@ impl History {
         }
     }
 
+    /// Decrement counter for given position.
     pub fn dec(&mut self, b: &Board) {
         let key = b.get_hash();
         match &self.h.entry(key) {
@@ -38,6 +42,7 @@ impl History {
         }
     }
 
+    /// Get counter for the given position.
     pub fn get(&mut self, b: &Board) -> BoardHistory {
         let key = b.get_hash();
         match &self.h.entry(key) {
