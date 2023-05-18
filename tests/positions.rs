@@ -1,6 +1,6 @@
-extern crate c4e5r;
+extern crate c4_e5_chess;
 
-use c4e5r::engine::game::Game;
+use c4_e5_chess::engine::game::Game;
 use log::LevelFilter;
 use serial_test::serial;
 use test_case::test_case;

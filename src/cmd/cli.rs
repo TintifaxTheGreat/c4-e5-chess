@@ -220,7 +220,7 @@ impl Cli {
     }
 
     fn send_id(&self) {
-        self.send_string("id name C4E5R");
+        self.send_string("id name C4-E5 Chess");
         self.send_string("id author Eugen Lindorfer");
     }
 

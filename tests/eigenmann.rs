@@ -1,8 +1,8 @@
 // test result: FAILED. 17 passed; 94 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1590.13s
 
-extern crate c4e5r;
+extern crate c4_e5_chess;
 
-use c4e5r::{engine::game::Game, misc::helpers::parse_epd};
+use c4_e5_chess::{engine::game::Game, misc::helpers::parse_epd};
 use log::LevelFilter;
 use serial_test::serial;
 use test_case::test_case;
