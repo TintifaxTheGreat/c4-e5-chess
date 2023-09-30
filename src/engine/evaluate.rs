@@ -1,6 +1,8 @@
 use super::{
     constants::*,
-    helpers::{defending_kings_moves_count, half_open_files, kings_distance, open_files, multiple_on_file},
+    helpers::{
+        defending_kings_moves_count, half_open_files, kings_distance, multiple_on_file, open_files,
+    },
     types::*,
 };
 use chess::{Board, Color, Piece};
