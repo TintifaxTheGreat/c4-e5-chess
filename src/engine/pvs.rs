@@ -1,11 +1,11 @@
 use super::{
     constants::{MATE, MIN_INT},
-    evaluate,
     history::History,
     move_gen::MoveGenPrime,
     store::Store,
-    types::*,
 };
+use crate::eval::evaluate;
+use crate::misc::types::*;
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
 use std::{
     mem,

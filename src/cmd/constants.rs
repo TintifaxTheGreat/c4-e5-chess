@@ -1,4 +1,4 @@
-use crate::engine::types::*;
+use crate::misc::types::*;
 
 // Time Management
 /// Minimum move time for any move in milliseconds

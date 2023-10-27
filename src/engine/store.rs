@@ -1,4 +1,4 @@
-use super::types::*;
+use crate::misc::types::*;
 use chess::{Board, ChessMove};
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;

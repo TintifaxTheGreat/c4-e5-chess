@@ -3,8 +3,8 @@ use super::{
     helpers::{
         defending_kings_moves_count, half_open_files, kings_distance, multiple_on_file, open_files,
     },
-    types::*,
 };
+use crate::misc::types::*;
 use chess::{Board, Color, Piece};
 
 /// A simple static evaluation function for the given board position

@@ -2,6 +2,7 @@ use chess::{Board, ChessMove};
 use std::str::FromStr;
 
 /// Parse EPD (Extended Position Description)
+#[allow(dead_code)] 
 pub fn parse_epd(epd: String) -> (String, String) {
     let mut s = epd.split(" bm ");
     let fen = s.next().expect("Cannot parse EPD.");
