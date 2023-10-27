@@ -15,5 +15,5 @@ These features are provided:
 At the time being, the focus was on simplicity and certainly there is a lot of potential in improvments in terms of playing strength.
 
 ## Documentation
-https://docs.rs/c4-e5-chess/0.2.0
+https://docs.rs/c4-e5-chess/0.2.2
 

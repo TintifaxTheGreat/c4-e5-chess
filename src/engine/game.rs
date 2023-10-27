@@ -1,6 +1,5 @@
-use super::{
-    constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, store::Store, types::*,
-};
+use super::{constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, store::Store};
+use crate::misc::types::*;
 use chess::{Board, ChessMove, MoveGen};
 use core::time::Duration;
 use log::info;

@@ -12,5 +12,8 @@ pub mod cmd;
 /// Chess engine
 pub mod engine;
 
+/// Board evaluation
+pub mod eval;
+
 /// Helpers
 pub mod misc;

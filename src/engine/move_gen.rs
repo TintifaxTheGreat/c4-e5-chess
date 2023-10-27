@@ -1,4 +1,4 @@
-use super::types::*;
+use crate::misc::types::*;
 use chess::{Board, ChessMove, MoveGen, EMPTY};
 
 /// A trait to extend the move generator of crate Chess.

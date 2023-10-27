@@ -1,4 +1,5 @@
-use super::{constants::CB_RANK_1, types::*};
+use super::constants::CB_RANK_1;
+use crate::misc::types::*;
 use chess::{Board, ChessMove, Color, MoveGen, Piece};
 use std::cmp::max;
 

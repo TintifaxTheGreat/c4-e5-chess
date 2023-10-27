@@ -1,11 +1,11 @@
 use super::{
     constants::{MATE, MIN_INT},
-    evaluate,
     history::History,
     move_gen::MoveGenPrime,
     store::Store,
-    types::*,
 };
+use crate::eval::{evaluation::Evaluation, simple::Simple};
+use crate::misc::types::*;
 use chess::{Board, BoardStatus, ChessMove, MoveGen};
 use std::{
     mem,
@@ -62,7 +62,7 @@ impl Pvs {
 
         if depth < 1 {
             self.node_count += 1;
-            return evaluate::evaluate(&board);
+            return Simple::evaluate(&board);
         }
 
         let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
