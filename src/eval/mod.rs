@@ -1,8 +1,8 @@
 /// Some useful constants
 pub mod constants;
 
-/// The evaluation function
-pub mod evaluate;
+/// A simple evaluation function
+pub mod simple;
 
 /// Collection of helpers
 pub mod helpers;
