@@ -22,7 +22,7 @@ rayon = "1.8"
 [dev-dependencies]
 test-case = "3.0.0"
 ctor = "0.2"
-serial_test = "2.0"
+serial_test = "3.0"
 
 [profile.release]
 strip = true
