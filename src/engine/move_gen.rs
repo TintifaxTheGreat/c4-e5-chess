@@ -4,7 +4,6 @@ use chess::{Board, ChessMove, MoveGen, EMPTY};
 /// A trait to extend the move generator of crate Chess.
 pub trait MoveGenPrime {
     fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove>;
-    fn count_legal(board: &Board) -> usize;
 }
 
 impl MoveGenPrime for MoveGen {
@@ -20,7 +19,6 @@ impl MoveGenPrime for MoveGen {
             result.push(AnnotatedMove {
                 mv,
                 sc: 0,
-                capture: true,
                 node_count: 0,
             });
         }
@@ -30,7 +28,6 @@ impl MoveGenPrime for MoveGen {
             result.push(AnnotatedMove {
                 mv,
                 sc: 0,
-                capture: false,
                 node_count: 0,
             });
         }
@@ -44,10 +41,5 @@ impl MoveGenPrime for MoveGen {
             }
         }
         result
-    }
-
-    /// Calculate number of legal moves in given position.
-    fn count_legal(board: &Board) -> usize {
-        MoveGen::new_legal(board).count()
     }
 }

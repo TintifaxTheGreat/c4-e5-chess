@@ -12,5 +12,4 @@ pub struct AnnotatedMove {
     pub mv: ChessMove,
     pub sc: MoveScore,
     pub node_count: u64,
-    pub capture: bool,
 }
