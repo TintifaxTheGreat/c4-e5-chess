@@ -6,7 +6,7 @@ use super::{
 };
 use crate::eval::{evaluation::Evaluation, simple::Simple};
 use crate::misc::types::*;
-use chess::{Board, BoardStatus, ChessMove, MoveGen};
+use cozy_chess::{Board, Move};
 use std::{
     mem,
     sync::{
@@ -41,7 +41,7 @@ impl Pvs {
         beta: MoveScore,
         playing: &Arc<AtomicBool>,
     ) -> MoveScore {
-        let mut best_move: Option<ChessMove> = None;
+        let mut best_move: Option<Move> = None;
         let mut best_value: MoveScore = MIN_INT;
         let mut value: MoveScore;
 

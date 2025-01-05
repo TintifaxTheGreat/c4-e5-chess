@@ -1,5 +1,5 @@
 use crate::misc::types::*;
-use chess::{Board, ChessMove};
+use cozy_chess::{Board, Move};
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
@@ -8,7 +8,7 @@ use hashbrown::HashMap;
 pub struct Item {
     depth: Depth,
     value: MoveScore,
-    chessmove: ChessMove,
+    chessmove: Move,
 }
 
 /// A hashmap for use in the transposition table.
@@ -24,8 +24,8 @@ impl Store {
 
     /// Put a position, its score and depth and the best move into the trasposition table.
     /// Update the score only if depth is greater than already stored depth.
-    pub fn put(&mut self, depth: Depth, value: MoveScore, b: &Board, chessmove: &ChessMove) {
-        let key = b.get_hash();
+    pub fn put(&mut self, depth: Depth, value: MoveScore, b: &Board, chessmove: &Move) {
+        let key = b.hash();
         let item = Item {
             depth,
             value,
@@ -45,8 +45,8 @@ impl Store {
     }
 
     /// Get a move and its score for the given position.
-    pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(ChessMove, MoveScore, bool)> {
-        let key = b.get_hash();
+    pub fn get(&mut self, depth: Depth, b: &Board) -> Option<(Move, MoveScore, bool)> {
+        let key = b.hash();
         match &self.h.entry(key) {
             Occupied(val) => {
                 let old_item = val.get();
@@ -80,12 +80,7 @@ mod tests {
         let result = store.get(5, &g.board);
         assert_eq!(result, None);
 
-        store.put(
-            5,
-            300,
-            &g.board,
-            &ChessMove::from_san(&g.board, "c2c4").unwrap(),
-        );
+        store.put(5, 300, &g.board, &Move::from_san(&g.board, "c2c4").unwrap());
 
         let (m, v, fresh) = store.get(5, &g.board).unwrap();
         assert_eq!(v, 300);
@@ -101,12 +96,7 @@ mod tests {
         assert_eq!(m.to_string(), "c2c4");
         assert_eq!(fresh, true);
 
-        store.put(
-            5,
-            305,
-            &g.board,
-            &ChessMove::from_san(&g.board, "e2e4").unwrap(),
-        );
+        store.put(5, 305, &g.board, &Move::from_san(&g.board, "e2e4").unwrap());
 
         let (m, v, fresh) = store.get(4, &g.board).unwrap();
         assert_eq!(v, 305);

@@ -1,5 +1,5 @@
 use crate::misc::types::*;
-use chess::Board;
+use cozy_chess::Board;
 use hashbrown::hash_map::Entry::{Occupied, Vacant};
 use hashbrown::HashMap;
 
@@ -16,7 +16,7 @@ impl History {
 
     /// Increment counter for given position.
     pub fn inc(&mut self, b: &Board) {
-        let key = b.get_hash();
+        let key = b.hash();
         match &self.h.entry(key) {
             Occupied(val) => {
                 let new_value = val.get() + 1;
@@ -30,7 +30,7 @@ impl History {
 
     /// Decrement counter for given position.
     pub fn dec(&mut self, b: &Board) {
-        let key = b.get_hash();
+        let key = b.hash();
         match &self.h.entry(key) {
             Occupied(val) => {
                 let new_value = val.get() - 1;
@@ -44,7 +44,7 @@ impl History {
 
     /// Get counter for the given position.
     pub fn get(&mut self, b: &Board) -> BoardHistory {
-        let key = b.get_hash();
+        let key = b.hash();
         match &self.h.entry(key) {
             Occupied(val) => *val.get(),
             Vacant(_) => 0,

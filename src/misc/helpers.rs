@@ -1,13 +1,14 @@
-use chess::{Board, ChessMove};
 use std::str::FromStr;
 
+use cozy_chess::{Board, Move};
+
 /// Parse EPD (Extended Position Description)
-#[allow(dead_code)] 
+#[allow(dead_code)]
 pub fn parse_epd(epd: String) -> (String, String) {
     let mut s = epd.split(" bm ");
     let fen = s.next().expect("Cannot parse EPD.");
     let best_move = s.next().expect("Cannot parse EPD.");
-    let board = Board::from_str(fen).expect("Invalid board.");
-    let mv = ChessMove::from_san(&board, best_move).expect("Invalid move.");
+    let _board = Board::from_fen(fen, true).expect("Invalid board.");
+    let mv = Move::from_san(best_move).expect("Invalid move.");
     (fen.to_string(), mv.to_string())
 }

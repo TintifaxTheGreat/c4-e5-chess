@@ -6,7 +6,7 @@ use super::{
     },
 };
 use crate::misc::types::*;
-use chess::{Board, Color, Piece};
+use cozy_chess::{Board, Color, Piece};
 
 #[derive(Default)]
 pub struct Simple {}

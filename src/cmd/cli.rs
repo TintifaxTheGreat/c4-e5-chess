@@ -1,7 +1,7 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
 use crate::misc::types::*;
-use chess::{Board, ChessMove, Color};
+use cozy_chess::{Board, Color, Move};
 use log::{error, info};
 use std::{
     io::stdin,
@@ -92,7 +92,7 @@ impl Cli {
                             }
                         }
                     }
-                    match Board::from_str(fen.as_str()) {
+                    match Board::from_fen(fen.as_str(), false) {
                         Ok(b) => self.game.board = b,
                         Err(_) => {
                             error!("FEN not valid");
@@ -108,7 +108,7 @@ impl Cli {
                     match args.next() {
                         Some(move_string) => {
                             let mut result = Board::default();
-                            match ChessMove::from_str(move_string) {
+                            match Move::from_str(move_string) {
                                 Ok(m) => {
                                     self.game.game_history.inc(&self.game.board);
                                     self.game.board.make_move(m, &mut result);

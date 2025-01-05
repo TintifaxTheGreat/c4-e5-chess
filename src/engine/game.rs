@@ -1,7 +1,7 @@
 use super::{constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, store::Store};
 use crate::misc::types::*;
-use chess::{Board, ChessMove, MoveGen};
 use core::time::Duration;
+use cozy_chess::{Board, Move};
 use log::info;
 use rayon::prelude::*;
 use std::{
@@ -65,7 +65,7 @@ impl Game {
     }
 
     /// Find the best move
-    pub fn find_move(&mut self) -> Option<ChessMove> {
+    pub fn find_move(&mut self) -> Option<Move> {
         fn stabilise_search_results(
             old: &[AnnotatedMove],
             new: &[AnnotatedMove],
@@ -87,7 +87,7 @@ impl Game {
         let alpha = MIN_INT;
         let beta = MAX_INT;
         let mut current_depth: Depth = 0;
-        let mut best_move: Option<ChessMove> = None;
+        let mut best_move: Option<Move> = None;
         let mut best_value: MoveScore = MIN_INT;
         let mut worst_value: MoveScore;
         let mut prior_values = MoveGen::get_legal_sorted(&self.board, None);

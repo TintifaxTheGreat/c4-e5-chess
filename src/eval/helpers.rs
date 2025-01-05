@@ -1,6 +1,6 @@
 use super::constants::CB_RANK_1;
 use crate::misc::types::*;
-use chess::{Board, ChessMove, Color, MoveGen, Piece};
+use cozy_chess::{Board, Color, Move, Piece};
 use std::cmp::max;
 
 /// Gives the number of available moves for the defending king.
@@ -8,7 +8,7 @@ pub fn defending_kings_moves_count(b: &Board) -> usize {
     match b.null_move() {
         Some(b1) => {
             let kings_square = b1.king_square(b1.side_to_move());
-            let kings_moves: Vec<ChessMove> = MoveGen::new_legal(&b1)
+            let kings_moves: Vec<Move> = MoveGen::new_legal(&b1)
                 .filter(|m| m.get_source() == kings_square)
                 .collect();
             kings_moves.len()

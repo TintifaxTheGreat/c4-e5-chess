@@ -1,15 +1,15 @@
 use crate::misc::types::*;
-use chess::{Board, ChessMove, MoveGen, EMPTY};
+use cozy_chess::{Board, Move};
 
 /// A trait to extend the move generator of crate Chess.
 pub trait MoveGenPrime {
-    fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove>;
+    fn get_legal_sorted(board: &Board, old_move: Option<Move>) -> Vec<AnnotatedMove>;
 }
 
 impl MoveGenPrime for MoveGen {
     /// Get all legal moves for given position, sort captures first.
     /// Also takes a proven good move ("old move") to be sorted first.
-    fn get_legal_sorted(board: &Board, old_move: Option<ChessMove>) -> Vec<AnnotatedMove> {
+    fn get_legal_sorted(board: &Board, old_move: Option<Move>) -> Vec<AnnotatedMove> {
         let mut result: Vec<AnnotatedMove> = Vec::new();
         let mut iterable = MoveGen::new_legal(board);
         let targets = board.color_combined(!board.side_to_move());
