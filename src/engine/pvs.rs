@@ -6,7 +6,7 @@ use super::{
 };
 use crate::eval::{evaluation::Evaluation, simple::Simple};
 use crate::misc::types::*;
-use cozy_chess::{Board, Move};
+use cozy_chess::{Board, GameStatus, Move};
 use std::{
     mem,
     sync::{
@@ -35,7 +35,7 @@ impl Pvs {
     /// Execute the search given a board and parameters Alpha and Beta
     pub fn execute(
         &mut self,
-        board: Board,
+        board: &Board,
         depth: Depth,
         mut alpha: MoveScore,
         beta: MoveScore,
@@ -49,8 +49,8 @@ impl Pvs {
             return 0;
         }
 
-        if board.status() != BoardStatus::Ongoing {
-            if board.status() == BoardStatus::Checkmate {
+        if board.status() != GameStatus::Ongoing {
+            if board.status() == GameStatus::Won {
                 return -MATE - i32::from(depth);
             }
             return 0;
@@ -67,47 +67,28 @@ impl Pvs {
 
         let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
             Some((_, v, true)) => return v,
-            Some((mv, _, false)) => MoveGen::get_legal_sorted(&board, Some(mv)),
-            None => MoveGen::get_legal_sorted(&board, None),
+            Some((mv, _, false)) => board.get_legal_sorted(Some(mv)),
+            None => board.get_legal_sorted(None),
         };
 
         let moves = children.iter();
-        let mut bresult = mem::MaybeUninit::<Board>::uninit();
-
         for (i, child) in &mut moves.enumerate() {
-            let _ = &board.make_move(child.mv, unsafe { &mut *bresult.as_mut_ptr() });
-            self.history.inc(unsafe { &*bresult.as_ptr() });
+            let mut b1 = board.clone();
+            b1.play_unchecked(child.mv);
+            self.history.inc(&b1);
             if i == 0 {
-                best_value = -self.execute(
-                    unsafe { *bresult.as_ptr() },
-                    depth - 1,
-                    -beta,
-                    -alpha,
-                    playing,
-                )
+                best_value = -self.execute(&b1, depth - 1, -beta, -alpha, playing)
             } else {
-                value = -self.execute(
-                    unsafe { *bresult.as_ptr() },
-                    depth - 1,
-                    -alpha - 1,
-                    -alpha,
-                    playing,
-                );
+                value = -self.execute(&b1, depth - 1, -alpha - 1, -alpha, playing);
                 if value > best_value {
                     if alpha < value && value < beta {
-                        best_value = -self.execute(
-                            unsafe { *bresult.as_ptr() },
-                            depth - 1,
-                            -beta,
-                            -value,
-                            playing,
-                        )
+                        best_value = -self.execute(&b1, depth - 1, -beta, -value, playing)
                     } else if value > best_value {
                         best_value = value;
                     }
                 }
             }
-            self.history.dec(unsafe { &*bresult.as_ptr() });
+            self.history.dec(&b1);
 
             if best_value >= beta {
                 best_move = Some(child.mv);

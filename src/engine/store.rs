@@ -69,6 +69,8 @@ impl Default for Store {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use crate::engine::game::Game;
 
@@ -80,7 +82,7 @@ mod tests {
         let result = store.get(5, &g.board);
         assert_eq!(result, None);
 
-        store.put(5, 300, &g.board, &Move::from_san(&g.board, "c2c4").unwrap());
+        store.put(5, 300, &g.board, &Move::from_str("c2c4").unwrap());
 
         let (m, v, fresh) = store.get(5, &g.board).unwrap();
         assert_eq!(v, 300);
@@ -96,7 +98,7 @@ mod tests {
         assert_eq!(m.to_string(), "c2c4");
         assert_eq!(fresh, true);
 
-        store.put(5, 305, &g.board, &Move::from_san(&g.board, "e2e4").unwrap());
+        store.put(5, 305, &g.board, &Move::from_str("e2e4").unwrap());
 
         let (m, v, fresh) = store.get(4, &g.board).unwrap();
         assert_eq!(v, 305);

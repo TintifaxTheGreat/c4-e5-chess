@@ -9,6 +9,6 @@ pub fn parse_epd(epd: String) -> (String, String) {
     let fen = s.next().expect("Cannot parse EPD.");
     let best_move = s.next().expect("Cannot parse EPD.");
     let _board = Board::from_fen(fen, true).expect("Invalid board.");
-    let mv = Move::from_san(best_move).expect("Invalid move.");
+    let mv = Move::from_str(best_move).expect("Invalid move.");
     (fen.to_string(), mv.to_string())
 }
