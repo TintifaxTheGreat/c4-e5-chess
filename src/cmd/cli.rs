@@ -91,10 +91,12 @@ impl Cli {
                             }
                         }
                     }
-                    match Board::from_fen(fen.as_str(), false) {
+                    fen = fen.trim_end().to_string();
+                    log::info!("FEN: ##{}##", fen);
+                    match Board::from_str(fen.as_str()) {
                         Ok(b) => self.game.board = b,
-                        Err(_) => {
-                            error!("FEN not valid");
+                        Err(e) => {
+                            error!("FEN not valid: {}", e);
                             return;
                         }
                     }
@@ -107,6 +109,7 @@ impl Cli {
                     match args.next() {
                         Some(move_string) => match Move::from_str(move_string) {
                             Ok(m) => {
+                                info!("Move: {}", move_string);
                                 self.game.game_history.inc(&self.game.board);
                                 self.game.board.play_unchecked(m);
                                 if self.game.board.side_to_move() == Color::Black {
@@ -209,7 +212,7 @@ impl Cli {
         match self.game.find_move() {
             Some(m) => {
                 self.game.game_history.inc(&self.game.board);
-                let _ = &self.game.board.play_unchecked(m);
+                self.game.board.play_unchecked(m);
                 let result = format!("bestmove {}", m);
                 info!("{} nodes examined.", self.game.node_count);
                 self.send_string(result.as_str());

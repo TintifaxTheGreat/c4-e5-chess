@@ -4,9 +4,9 @@ use core::time::Duration;
 use cozy_chess::{Board, Move};
 use log::info;
 use rayon::prelude::*;
+//use rayon::prelude::*;
 use std::{
     cmp::{max, min},
-    mem,
     str::FromStr,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -49,7 +49,7 @@ impl Game {
                 game_store: Store::new(),
                 game_history: History::new(),
             },
-            Err(_) => panic!("FEN not valid"),
+            Err(e) => panic!("FEN not valid: {}", e),
         }
     }
 
@@ -90,7 +90,7 @@ impl Game {
         let mut best_move: Option<Move> = None;
         let mut best_value: MoveScore = MIN_INT;
         let mut worst_value: MoveScore;
-        let mut prior_values = MoveGen::get_legal_sorted(&self.board, None);
+        let mut prior_values = self.board.get_legal_sorted(None);
         let mut prior_values_old: Vec<AnnotatedMove> = vec![];
 
         self.set_timer();
@@ -104,28 +104,20 @@ impl Game {
                 |AnnotatedMove {
                      mv, sc, node_count, ..
                  }| {
-                    let mut bresult = mem::MaybeUninit::<Board>::uninit();
+                    let mut b1 = self.board.clone();
                     let mut pvs = Pvs::new();
                     pvs.store.h.clone_from(&self.game_store.h);
                     pvs.history.h.clone_from(&self.game_history.h);
-
-                    self.board
-                        .make_move(*mv, unsafe { &mut *bresult.as_mut_ptr() });
-                    pvs.history.inc(unsafe { &*bresult.as_ptr() });
-                    *sc = -pvs.execute(
-                        unsafe { *bresult.as_ptr() },
-                        current_depth,
-                        -beta,
-                        -alpha,
-                        &self.playing,
-                    );
-                    pvs.history.dec(unsafe { &*bresult.as_ptr() });
+                    b1.play_unchecked(*mv);
+                    pvs.history.inc(&b1);
+                    *sc = -pvs.execute(&b1, current_depth, -beta, -alpha, &self.playing);
+                    pvs.history.dec(&b1);
                     *node_count = pvs.node_count;
                 },
             );
 
             if !self.playing.load(Ordering::Relaxed) {
-                info!("Time has expired");
+                log::info!("Time has expired");
                 break;
             }
 
@@ -155,7 +147,7 @@ impl Game {
                      ..
                  }| acc + nc,
             );
-
+            info!("Nodes examined: {}", self.node_count);
             // Forward pruning
             if current_depth >= FORWARD_PRUNING_DEPTH_START {
                 let moves_count = prior_values.len();
@@ -168,17 +160,6 @@ impl Game {
                     prior_values.truncate(cut_index);
                 }
             }
-            /*
-            prior_values
-                .iter()
-                .for_each(|AnnotatedMove { mv, sc, .. }| {
-                    info!("....{0} {1}", mv.to_string(), sc,);
-                });
-            info!(
-                "Current Depth: {0}, Node Count: {1}",
-                current_depth, self.node_count
-            );
-            */
 
             current_depth += 1;
             prior_values_old = prior_values.clone();

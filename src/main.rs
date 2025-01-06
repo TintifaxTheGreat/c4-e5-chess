@@ -2,8 +2,8 @@ use crate::cmd::cli::Cli;
 use log::{info, LevelFilter};
 mod cmd;
 mod engine;
-mod misc;
 mod eval;
+mod misc;
 
 /// Main function to be used with a UCI chess gui
 fn main() {

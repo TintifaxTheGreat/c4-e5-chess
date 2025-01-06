@@ -76,10 +76,10 @@ pub fn multiple_on_file(pp: u64) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use cozy_chess::FenParseError;
+    use std::str::FromStr;
 
     use super::*;
-    use std::str::FromStr;
+    use cozy_chess::FenParseError;
 
     #[test]
     fn test_defending_kings_moves_count() -> Result<(), FenParseError> {

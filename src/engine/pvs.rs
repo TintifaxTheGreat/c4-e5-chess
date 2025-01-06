@@ -7,12 +7,9 @@ use super::{
 use crate::eval::{evaluation::Evaluation, simple::Simple};
 use crate::misc::types::*;
 use cozy_chess::{Board, GameStatus, Move};
-use std::{
-    mem,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
 };
 
 /// A principal variant search.
@@ -56,16 +53,16 @@ impl Pvs {
             return 0;
         }
 
-        if self.history.get(&board) > 2 {
+        if self.history.get(board) > 2 {
             return 0;
         }
 
         if depth < 1 {
             self.node_count += 1;
-            return Simple::evaluate(&board);
+            return Simple::evaluate(board);
         }
 
-        let children: Vec<AnnotatedMove> = match self.store.get(depth, &board) {
+        let children: Vec<AnnotatedMove> = match self.store.get(depth, board) {
             Some((_, v, true)) => return v,
             Some((mv, _, false)) => board.get_legal_sorted(Some(mv)),
             None => board.get_legal_sorted(None),
@@ -101,7 +98,7 @@ impl Pvs {
         }
 
         if let Some(bm) = best_move {
-            self.store.put(depth - 1, best_value, &board, &bm);
+            self.store.put(depth - 1, best_value, board, &bm);
         }
         best_value
     }

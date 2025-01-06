@@ -17,7 +17,7 @@ impl MoveGenPrime for Board {
         let other_squares = enemy_pieces.not();
 
         self.generate_moves(|moves| {
-            let mut captures = moves.clone();
+            let mut captures = moves;
             captures.to &= enemy_pieces;
             for mv in captures {
                 result.push(AnnotatedMove {
@@ -27,7 +27,7 @@ impl MoveGenPrime for Board {
                 });
             }
 
-            let mut others = moves.clone();
+            let mut others = moves;
             others.to &= other_squares;
             for mv in others {
                 result.push(AnnotatedMove {
