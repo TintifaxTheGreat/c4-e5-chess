@@ -1,7 +1,7 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
 use crate::misc::types::*;
-use cozy_chess::{Board, Color, Move};
+use cozy_chess::{util, Board, Color};
 use log::{error, info};
 use std::{
     io::stdin,
@@ -92,7 +92,6 @@ impl Cli {
                         }
                     }
                     fen = fen.trim_end().to_string();
-                    log::info!("FEN: ##{}##", fen);
                     match Board::from_str(fen.as_str()) {
                         Ok(b) => self.game.board = b,
                         Err(e) => {
@@ -107,20 +106,22 @@ impl Cli {
 
                 "moves" => loop {
                     match args.next() {
-                        Some(move_string) => match Move::from_str(move_string) {
-                            Ok(m) => {
-                                info!("Move: {}", move_string);
-                                self.game.game_history.inc(&self.game.board);
-                                self.game.board.play_unchecked(m);
-                                if self.game.board.side_to_move() == Color::Black {
-                                    self.game.move_number += 1;
+                        Some(move_string) => {
+                            match util::parse_uci_move(&self.game.board, move_string) {
+                                Ok(m) => {
+                                    info!("Move: {}", move_string);
+                                    self.game.game_history.inc(&self.game.board);
+                                    self.game.board.play_unchecked(m);
+                                    if self.game.board.side_to_move() == Color::Black {
+                                        self.game.move_number += 1;
+                                    }
+                                }
+                                Err(_) => {
+                                    error!("Illegal move");
+                                    return;
                                 }
                             }
-                            Err(_) => {
-                                error!("Illegal move");
-                                return;
-                            }
-                        },
+                        }
                         None => return,
                     }
                 },
@@ -211,9 +212,10 @@ impl Cli {
     fn get_move_from_engine(&mut self) {
         match self.game.find_move() {
             Some(m) => {
+                let result_uci = util::display_uci_move(&self.game.board, m);
                 self.game.game_history.inc(&self.game.board);
                 self.game.board.play_unchecked(m);
-                let result = format!("bestmove {}", m);
+                let result = format!("bestmove {}", result_uci);
                 info!("{} nodes examined.", self.game.node_count);
                 self.send_string(result.as_str());
             }

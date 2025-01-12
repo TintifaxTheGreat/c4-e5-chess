@@ -2,9 +2,8 @@ use super::{constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, st
 use crate::misc::types::*;
 use core::time::Duration;
 use cozy_chess::{Board, Move};
-use log::info;
+use log::{error, info};
 use rayon::prelude::*;
-//use rayon::prelude::*;
 use std::{
     cmp::{max, min},
     str::FromStr,
@@ -49,7 +48,10 @@ impl Game {
                 game_store: Store::new(),
                 game_history: History::new(),
             },
-            Err(e) => panic!("FEN not valid: {}", e),
+            Err(e) => {
+                error!("FEN not valid: {}", e);
+                Self::default()
+            }
         }
     }
 
@@ -82,6 +84,21 @@ impl Game {
                 v.sc = min(v.sc + diff_mean, old[i].sc);
             });
             new_stabilised
+        }
+
+        fn update_node_count(prior_values: &[AnnotatedMove]) -> u64 {
+            let mut node_count = 0;
+            node_count += prior_values.iter().fold(
+                0,
+                |acc,
+                 AnnotatedMove {
+                     mv: _,
+                     sc: _,
+                     node_count: nc,
+                     ..
+                 }| acc + nc,
+            );
+            node_count
         }
 
         let alpha = MIN_INT;
@@ -117,7 +134,8 @@ impl Game {
             );
 
             if !self.playing.load(Ordering::Relaxed) {
-                log::info!("Time has expired");
+                info!("Time for this move has expired.");
+                self.node_count += update_node_count(&prior_values);
                 break;
             }
 
@@ -136,18 +154,9 @@ impl Game {
                 );
                 break;
             }
-            // Add to node count
-            self.node_count += prior_values.iter().fold(
-                0,
-                |acc,
-                 AnnotatedMove {
-                     mv: _,
-                     sc: _,
-                     node_count: nc,
-                     ..
-                 }| acc + nc,
-            );
+            self.node_count += update_node_count(&prior_values);
             info!("Nodes examined: {}", self.node_count);
+
             // Forward pruning
             if current_depth >= FORWARD_PRUNING_DEPTH_START {
                 let moves_count = prior_values.len();
