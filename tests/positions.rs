@@ -10,7 +10,7 @@ const LOG_LOCATION: &str = "c4e5r.log";
 #[cfg(test)]
 #[ctor::ctor]
 fn init() {
-    simple_logging::log_to_file(LOG_LOCATION, LevelFilter::Info)
+    simple_logging::log_to_file(LOG_LOCATION, LevelFilter::Error)
         .expect("Logfile cannot be opened.");
 }
 static TEST_RESOURCE: &[&str] = &[

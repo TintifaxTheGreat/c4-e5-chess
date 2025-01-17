@@ -13,7 +13,7 @@ pub struct Item {
 
 /// A hashmap for use in the transposition table.
 pub struct Store {
-    pub h: HashMap<u64, Item>, // TODO field should stay private
+    pub h: HashMap<u64, Item>,
 }
 
 impl Store {

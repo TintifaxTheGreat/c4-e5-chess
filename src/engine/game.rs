@@ -172,6 +172,12 @@ impl Game {
 
             current_depth += 1;
             prior_values_old = prior_values.clone();
+
+            info!(
+                "Best move so far: {} with score {}",
+                best_move.unwrap().to_string(),
+                best_value
+            );
         }
         self.game_store.put(
             current_depth - 1,
@@ -179,6 +185,7 @@ impl Game {
             &self.board,
             &best_move.unwrap(),
         );
+
         best_move
     }
 }
