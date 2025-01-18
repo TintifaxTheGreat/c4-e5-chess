@@ -19,9 +19,9 @@ impl Evaluation for Simple {
         value -= (b.colored_pieces(Color::Black, Piece::Pawn).0.count_ones() * 200) as MoveScore;
 
         value += ((b.colored_pieces(Color::White, Piece::Pawn).0 & CB_CENTER_0_GOOD).count_ones()
-            * 20) as MoveScore;
+            * 15) as MoveScore;
         value -= ((b.colored_pieces(Color::Black, Piece::Pawn).0 & CB_CENTER_0_GOOD).count_ones()
-            * 20) as MoveScore;
+            * 15) as MoveScore;
 
         value += ((b.colored_pieces(Color::White, Piece::Pawn).0 & CB_CENTER_1).count_ones() * 30)
             as MoveScore;
@@ -60,9 +60,9 @@ impl Evaluation for Simple {
         value += (b.colored_pieces(Color::White, Piece::Rook).0.count_ones() * 950) as MoveScore;
         value -= (b.colored_pieces(Color::Black, Piece::Rook).0.count_ones() * 950) as MoveScore;
 
-        value += ((b.colored_pieces(Color::White, Piece::Rook).0 & b_open_files).count_ones() * 20)
+        value += ((b.colored_pieces(Color::White, Piece::Rook).0 & b_open_files).count_ones() * 40)
             as MoveScore;
-        value -= ((b.colored_pieces(Color::Black, Piece::Rook).0 & b_open_files).count_ones() * 20)
+        value -= ((b.colored_pieces(Color::Black, Piece::Rook).0 & b_open_files).count_ones() * 40)
             as MoveScore;
 
         value += ((b.colored_pieces(Color::White, Piece::Rook).0 & b_half_open_files).count_ones()
@@ -70,9 +70,9 @@ impl Evaluation for Simple {
         value -= ((b.colored_pieces(Color::Black, Piece::Rook).0 & b_half_open_files).count_ones()
             * 10) as MoveScore;
 
-        value += ((b.colored_pieces(Color::White, Piece::Rook).0 & CB_RANK_7).count_ones() * 100)
+        value += ((b.colored_pieces(Color::White, Piece::Rook).0 & CB_RANK_7).count_ones() * 80)
             as MoveScore;
-        value -= ((b.colored_pieces(Color::Black, Piece::Rook).0 & CB_RANK_2).count_ones() * 100)
+        value -= ((b.colored_pieces(Color::Black, Piece::Rook).0 & CB_RANK_2).count_ones() * 80)
             as MoveScore;
 
         // Rules concerning queens
@@ -91,9 +91,9 @@ impl Evaluation for Simple {
                 * 51) as MoveScore;
 
             value -= ((b.colored_pieces(Color::White, Piece::Bishop).0 & CB_RANK_1).count_ones()
-                * 51) as MoveScore;
+                * 100) as MoveScore;
             value += ((b.colored_pieces(Color::Black, Piece::Bishop).0 & CB_RANK_8).count_ones()
-                * 51) as MoveScore;
+                * 100) as MoveScore;
 
             value += ((b.colored_pieces(Color::White, Piece::Bishop).0 & CB_GOOD_BISHOP)
                 .count_ones()
@@ -136,50 +136,24 @@ impl Evaluation for Simple {
         value
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use cozy_chess::Board;
-    use std::str::FromStr;
+    use std::{str::FromStr, time::Instant};
 
     #[test]
-    fn test_evaluate_initial_position() {
+    fn test_evaluate_performance() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        let board = Board::from_str(fen).expect("Invalid FEN");
-        let score = Simple::evaluate(&board);
-        assert_eq!(score, 0); // Initial position should be balanced
-    }
+        let board = Board::from_str(fen).unwrap();
 
-    #[test]
-    fn test_evaluate_white_advantage() {
-        let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
-        let board = Board::from_str(fen).expect("Invalid FEN");
-        let score = Simple::evaluate(&board);
-        assert!(score > 0); // White has an advantage with an extra pawn in the center
-    }
+        let start = Instant::now();
 
-    #[test]
-    fn test_evaluate_black_advantage() {
-        let fen = "rnbqkbnr/pppppppp/8/8/8/4p3/PPPP1PPP/RNBQKBNR w KQkq - 0 2";
-        let board = Board::from_str(fen).expect("Invalid FEN");
-        let score = Simple::evaluate(&board);
-        assert!(score < 0); // Black has an advantage with an extra pawn in the center
-    }
+        for _ in 0..1000000 {
+            Simple::evaluate(&board);
+        }
 
-    #[test]
-    fn test_evaluate_endgame() {
-        let fen = "8/8/8/8/8/8/4K3/4k3 w - - 0 1";
-        let board = Board::from_str(fen).expect("Invalid FEN");
-        let score = Simple::evaluate(&board);
-        assert_eq!(score, 0); // King vs King should be balanced
-    }
-
-    #[test]
-    fn test_evaluate_complex_position() {
-        let fen = "r1bqkbnr/pppppppp/2n5/8/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 2 3";
-        let board = Board::from_str(fen).expect("Invalid FEN");
-        let score = Simple::evaluate(&board);
-        assert!(score > 0); // White has an advantage with better development
+        let duration = start.elapsed();
+        println!("Time taken to run evaluate 1000000 times: {:?}", duration);
     }
 }

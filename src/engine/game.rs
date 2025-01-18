@@ -5,7 +5,7 @@ use cozy_chess::{Board, Move};
 use log::{error, info};
 use rayon::prelude::*;
 use std::{
-    cmp::{max, min},
+    cmp::max,
     str::FromStr,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -20,9 +20,9 @@ pub struct Game {
     pub board: Board,
     pub move_time: MoveTime, // in Milliseconds
     pub move_number: MoveNumber,
-    pub playing: Arc<AtomicBool>,
+    playing: Arc<AtomicBool>,
     pub node_count: u64,
-    pub game_store: Store,
+    game_store: Store,
     pub game_history: History,
 }
 
@@ -72,18 +72,22 @@ impl Game {
             old: &[AnnotatedMove],
             new: &[AnnotatedMove],
         ) -> Vec<AnnotatedMove> {
-            let mut new_stabilised: Vec<AnnotatedMove> = new.to_owned();
-
-            let diff_mean = new_stabilised
+            let len = new.len();
+            let diff_mean: i32 = new
                 .iter()
-                .enumerate()
-                .fold(0, |acc, (i, v)| acc + (old[i].sc - v.sc))
-                / new_stabilised.len() as i32;
+                .zip(old.iter())
+                .map(|(new_move, old_move)| old_move.sc - new_move.sc)
+                .sum::<i32>()
+                / len as i32;
 
-            new_stabilised.iter_mut().enumerate().for_each(|(i, v)| {
-                v.sc = min(v.sc + diff_mean, old[i].sc);
-            });
-            new_stabilised
+            new.iter()
+                .zip(old.iter())
+                .map(|(new_move, old_move)| {
+                    let mut adjusted_move = *new_move;
+                    adjusted_move.sc = (adjusted_move.sc + diff_mean).min(old_move.sc);
+                    adjusted_move
+                })
+                .collect()
         }
 
         fn update_node_count(prior_values: &[AnnotatedMove]) -> u64 {

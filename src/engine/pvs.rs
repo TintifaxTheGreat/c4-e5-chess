@@ -1,9 +1,5 @@
-use super::{
-    constants::{MATE, MIN_INT},
-    history::History,
-    move_gen::MoveGenPrime,
-    store::Store,
-};
+use super::constants::MIN_INT;
+use super::{constants::MATE, history::History, move_gen::MoveGenPrime, store::Store};
 use crate::eval::{evaluation::Evaluation, simple::Simple};
 use crate::misc::types::*;
 use cozy_chess::{Board, GameStatus, Move};

@@ -22,7 +22,6 @@ pub fn defending_kings_moves_count(b: &Board) -> usize {
 
 /// Calculate the distance between both kings.
 pub fn kings_distance(b: &Board) -> MoveScore {
-    // TODO Improve this?
     let wk = b
         .colored_pieces(Color::White, Piece::King)
         .next_square()
