@@ -24,6 +24,7 @@ impl MoveGenPrime for Board {
                     mv,
                     sc: 0,
                     node_count: 0,
+                    cp: true,
                 });
             }
 
@@ -34,6 +35,7 @@ impl MoveGenPrime for Board {
                     mv,
                     sc: 0,
                     node_count: 0,
+                    cp: false,
                 });
             }
 

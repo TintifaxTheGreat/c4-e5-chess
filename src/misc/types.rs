@@ -11,5 +11,6 @@ pub type BoardHistory = u16;
 pub struct AnnotatedMove {
     pub mv: Move,
     pub sc: MoveScore,
+    pub cp: bool,
     pub node_count: u64,
 }

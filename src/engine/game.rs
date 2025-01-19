@@ -123,7 +123,10 @@ impl Game {
         while current_depth <= self.max_depth {
             prior_values.par_iter_mut().for_each(
                 |AnnotatedMove {
-                     mv, sc, node_count, ..
+                     mv,
+                     sc,
+                     cp,
+                     node_count,
                  }| {
                     let mut b1 = self.board.clone();
                     let mut pvs = Pvs::new();
@@ -131,7 +134,7 @@ impl Game {
                     pvs.history.h.clone_from(&self.game_history.h);
                     b1.play_unchecked(*mv);
                     pvs.history.inc(&b1);
-                    *sc = -pvs.execute(&b1, current_depth, -beta, -alpha, &self.playing);
+                    *sc = -pvs.execute(&b1, current_depth, -beta, -alpha, &self.playing, *cp);
                     pvs.history.dec(&b1);
                     *node_count = pvs.node_count;
                 },

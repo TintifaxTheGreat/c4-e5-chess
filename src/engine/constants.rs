@@ -33,3 +33,5 @@ pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds
 pub const MATE_LEVEL: MoveScore = 55_000;
 /// Score for mate
 pub const MATE: MoveScore = 60_000;
+/// Value for delta pruning (queen value)
+pub const DELTA: MoveScore = 1800;
