@@ -33,11 +33,10 @@ impl Pvs {
         mut alpha: MoveScore,
         beta: MoveScore,
         playing: &Arc<AtomicBool>,
-        capture: bool,
+        _capture: bool,
     ) -> MoveScore {
         let mut best_move: Option<Move> = None;
         let mut best_value: MoveScore = MIN_INT;
-        let mut value: MoveScore;
 
         if !playing.load(Ordering::Relaxed) {
             return 0;
@@ -55,9 +54,6 @@ impl Pvs {
         }
 
         if depth < 1 {
-            if capture {
-                return self.quiescence(board, depth, alpha, beta, playing, true);
-            }
             self.node_count += 1;
             return Simple::evaluate(board);
         }
@@ -68,120 +64,35 @@ impl Pvs {
             None => board.get_legal_sorted(None),
         };
 
-        let moves = children.iter();
-        for (i, child) in &mut moves.enumerate() {
+        for (i, child) in children.iter().enumerate() {
             let mut b1 = board.clone();
             b1.play_unchecked(child.mv);
             self.history.inc(&b1);
-            if i == 0 {
-                best_value = -self.execute(&b1, depth - 1, -beta, -alpha, playing, child.cp)
+
+            let value = if i == 0 {
+                -self.execute(&b1, depth - 1, -beta, -alpha, playing, child.cp)
             } else {
-                value = -self.execute(&b1, depth - 1, -alpha - 1, -alpha, playing, child.cp);
-                if value > best_value {
-                    if alpha < value && value < beta {
-                        best_value = -self.execute(&b1, depth - 1, -beta, -value, playing, child.cp)
-                    } else if value > best_value {
-                        best_value = value;
-                    }
+                let mut value =
+                    -self.execute(&b1, depth - 1, -alpha - 1, -alpha, playing, child.cp);
+                if value > alpha && value < beta {
+                    value = -self.execute(&b1, depth - 1, -beta, -value, playing, child.cp);
                 }
-            }
+                value
+            };
+
             self.history.dec(&b1);
 
-            if best_value >= beta {
-                best_move = Some(child.mv);
-                break;
-            }
-            if best_value > alpha {
-                alpha = best_value;
+            if value > best_value {
+                best_value = value;
                 best_move = Some(child.mv);
             }
-        }
-
-        if let Some(bm) = best_move {
-            self.store.put(depth - 1, best_value, board, &bm);
-        }
-        best_value
-    }
-
-    /// Quiescence search
-    pub fn quiescence(
-        &mut self,
-        board: &Board,
-        depth: Depth,
-        mut alpha: MoveScore,
-        beta: MoveScore,
-        playing: &Arc<AtomicBool>,
-        capture: bool,
-    ) -> MoveScore {
-        let mut best_move: Option<Move> = None;
-        let mut value: MoveScore;
-
-        if !playing.load(Ordering::Relaxed) {
-            return 0;
-        }
-
-        if board.status() != GameStatus::Ongoing {
-            if board.status() == GameStatus::Won {
-                return -MATE - i32::from(depth);
-            }
-            return 0;
-        }
-
-        if !capture {
-            return Simple::evaluate(board);
-        }
-
-        let stand_pat = Simple::evaluate(board);
-        let mut best_value = stand_pat;
-        if stand_pat >= beta {
-            return stand_pat;
-        }
-        if alpha < stand_pat {
-            alpha = stand_pat;
-        }
-
-        let children: Vec<AnnotatedMove> = match self.store.get(depth, board) {
-            Some((_, v, true)) => return v,
-            Some((mv, _, false)) => board.get_legal_sorted(Some(mv)),
-            None => board.get_legal_sorted(None),
-        };
-
-        let moves = children.iter();
-        if moves.len() == 0 {
-            return Simple::evaluate(board);
-        }
-        for (i, child) in &mut moves.enumerate() {
-            let mut b1 = board.clone();
-            b1.play_unchecked(child.mv);
-            self.history.inc(&b1);
-            if i == 0 {
-                best_value = -self.quiescence(&b1, depth - 1, -beta, -alpha, playing, child.cp)
-            } else {
-                value = -self.quiescence(&b1, depth - 1, -alpha - 1, -alpha, playing, child.cp);
-                if value > best_value {
-                    if alpha < value && value < beta {
-                        best_value =
-                            -self.quiescence(&b1, depth - 1, -beta, -value, playing, child.cp)
-                    } else if value > best_value {
-                        best_value = value;
-                    }
-                }
-            }
-            self.history.dec(&b1);
 
             if best_value >= beta {
-                best_move = Some(child.mv);
-                break;
-            }
-            // TODO consider pawn promotions here
-            if best_value < alpha - DELTA {
-                best_move = Some(child.mv);
                 break;
             }
 
             if best_value > alpha {
                 alpha = best_value;
-                best_move = Some(child.mv);
             }
         }
 

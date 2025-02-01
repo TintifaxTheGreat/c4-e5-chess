@@ -10,12 +10,13 @@ const LOG_LOCATION: &str = "c4e5chess.log";
 #[cfg(test)]
 #[ctor::ctor]
 fn init() {
-    simple_logging::log_to_file(LOG_LOCATION, LevelFilter::Error)
+    simple_logging::log_to_file(LOG_LOCATION, LevelFilter::Info)
         .expect("Logfile cannot be opened.");
 }
 static TEST_RESOURCE: &[&str] = &[
     "8/2Q5/8/6q1/2K5/8/8/7k b - - 0 1,g5c1",
     "8/8/8/8/2R5/3k4/5K1n/8 w - - 0 1,c4h4",
+    //"r1bq4/1p4kp/3p1n2/p4pB1/2pQ4/8/1P4PP/4RRK1 w - - 0 1,e1e8",
     //"3q1rk1/4bp1p/1n2P2Q/1p1p1p2/6r1/Pp2R2N/1B1P2PP/7K w - - 0 1,h3g5",
 ];
 

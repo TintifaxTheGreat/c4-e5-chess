@@ -10,6 +10,7 @@ These features are provided:
 - Iterative depthening (parallelised)
 - Late move pruning
 - Principal variant search
+- Null move pruning
 - Transposition table
 
 ## Documentation

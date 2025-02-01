@@ -162,7 +162,19 @@ impl Game {
                 break;
             }
             self.node_count += update_node_count(&prior_values);
-            info!("Nodes examined: {}", self.node_count);
+            info!(
+                "Depth: {} Nodes examined: {}",
+                current_depth, self.node_count
+            );
+
+            info!(
+                "Moves before pruning: {}",
+                prior_values
+                    .iter()
+                    .map(|m| format!("{} (score: {})", m.mv, m.sc))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            );
 
             // Forward pruning
             if current_depth >= FORWARD_PRUNING_DEPTH_START {
@@ -179,12 +191,6 @@ impl Game {
 
             current_depth += 1;
             prior_values_old = prior_values.clone();
-
-            info!(
-                "Best move so far: {} with score {}",
-                best_move.unwrap().to_string(),
-                best_value
-            );
         }
         self.game_store.put(
             current_depth - 1,
