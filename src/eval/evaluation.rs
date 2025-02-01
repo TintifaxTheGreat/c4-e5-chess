@@ -1,5 +1,5 @@
 use crate::misc::types::*;
-use chess::Board;
+use cozy_chess::Board;
 
 /// A board evaluation
 pub trait Evaluation {

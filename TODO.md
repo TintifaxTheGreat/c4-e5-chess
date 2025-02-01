@@ -1,5 +1,3 @@
 # To do
-- King safety (pawns before king)
-- Add mate finder
-- time mgmt consider moves to go
-- Add comments
+- Improve evaluation (king safety)
+- Improve time management (consider moves to go)

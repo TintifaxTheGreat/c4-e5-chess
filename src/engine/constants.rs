@@ -5,7 +5,6 @@ use crate::misc::types::*;
 pub const FEN_START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Search
-
 /// Maximum score
 pub const MAX_INT: MoveScore = 1_000_000;
 

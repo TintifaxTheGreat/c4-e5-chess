@@ -1,7 +1,7 @@
 use super::constants::*;
 use crate::engine::game::Game;
 use crate::misc::types::*;
-use chess::Color;
+use cozy_chess::Color;
 use log::info;
 use std::cmp::{max, min};
 

@@ -1,9 +1,9 @@
 [package]
 name = "c4-e5-chess"
-version = "0.2.3"
+version = "0.3.0"
 authors = ["Eugen Lindorfer"]
 edition = "2021"
-description = "C4-E5 Chess is a UCI compatible chess engine based on the move generator in crate Chess. These features are provided: Parallelised iterative depthening, late move pruning, principal variant search, transposition table."
+description = "C4-E5 Chess is a UCI compatible chess engine based on the move generator in crate cozy-chess. These features are provided: Parallelised iterative depthening, late move pruning, principal variant search, transposition table."
 readme = "README.md"
 repository = "https://github.com/TintifaxTheGreat/c4-e5-chess"
 license = "MIT"
@@ -11,20 +11,24 @@ keywords = ["game", "chess"]
 categories = ["games"]
 
 [dependencies]
-chess = "3.2"
+cozy-chess = "0.3"
 timer = "0.2"
 chrono = "0.4"
 log = { version = "0.4", features = ["release_max_level_off"] }
 simple-logging = "2.0"
 hashbrown = "0.15"
-rayon = "1.8"
+rayon = "1.10"
 
 [dev-dependencies]
 test-case = "3.0.0"
 ctor = "0.2"
 serial_test = "3.0"
+criterion = "0.3"
 
 [profile.release]
 strip = true
 panic = "abort"
 
+[[bench]]
+name = "basic_benchmark"
+harness = false

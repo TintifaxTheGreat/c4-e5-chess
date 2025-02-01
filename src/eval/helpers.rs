@@ -1,17 +1,20 @@
 use super::constants::CB_RANK_1;
 use crate::misc::types::*;
-use chess::{Board, ChessMove, Color, MoveGen, Piece};
+use cozy_chess::{Board, Color, Piece};
 use std::cmp::max;
 
 /// Gives the number of available moves for the defending king.
 pub fn defending_kings_moves_count(b: &Board) -> usize {
     match b.null_move() {
         Some(b1) => {
-            let kings_square = b1.king_square(b1.side_to_move());
-            let kings_moves: Vec<ChessMove> = MoveGen::new_legal(&b1)
-                .filter(|m| m.get_source() == kings_square)
-                .collect();
-            kings_moves.len()
+            let mut result = 0;
+            let kings_square = b1.colored_pieces(b1.side_to_move(), Piece::King);
+
+            b1.generate_moves_for(kings_square, |moves| {
+                result = moves.len();
+                false
+            });
+            result
         }
         None => 0,
     }
@@ -19,11 +22,17 @@ pub fn defending_kings_moves_count(b: &Board) -> usize {
 
 /// Calculate the distance between both kings.
 pub fn kings_distance(b: &Board) -> MoveScore {
-    let wk = b.king_square(Color::White);
-    let bk = b.king_square(Color::Black);
+    let wk = b
+        .colored_pieces(Color::White, Piece::King)
+        .next_square()
+        .unwrap();
+    let bk = b
+        .colored_pieces(Color::Black, Piece::King)
+        .next_square()
+        .unwrap();
     max(
-        MoveScore::abs(wk.get_rank() as MoveScore - bk.get_rank() as MoveScore),
-        MoveScore::abs(wk.get_file() as MoveScore - bk.get_file() as MoveScore),
+        MoveScore::abs(wk.rank() as MoveScore - bk.rank() as MoveScore),
+        MoveScore::abs(wk.file() as MoveScore - bk.file() as MoveScore),
     )
 }
 
@@ -54,8 +63,8 @@ pub fn open_files(b: &Board) -> u64 {
 
 /// Give all half open files (files with own pawn, but no oppisite pawn).
 pub fn half_open_files(b: &Board) -> u64 {
-    let white = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::White).0);
-    let black = file_fill(b.pieces(Piece::Pawn).0 & b.color_combined(Color::Black).0);
+    let white = file_fill(b.pieces(Piece::Pawn).0 & b.colors(Color::White).0);
+    let black = file_fill(b.pieces(Piece::Pawn).0 & b.colors(Color::Black).0);
     (white & !black) | (!white & black)
 }
 
@@ -66,11 +75,13 @@ pub fn multiple_on_file(pp: u64) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::str::FromStr;
 
+    use super::*;
+    use cozy_chess::FenParseError;
+
     #[test]
-    fn test_defending_kings_moves_count() -> Result<(), chess::Error> {
+    fn test_defending_kings_moves_count() -> Result<(), FenParseError> {
         let board = Board::from_str("8/7k/8/5r2/1KN5/2R5/8/8 w - - 0 1")?;
         assert_eq!(defending_kings_moves_count(&board), 5);
 
@@ -84,7 +95,7 @@ mod tests {
     }
 
     #[test]
-    fn test_kings_distance() -> Result<(), chess::Error> {
+    fn test_kings_distance() -> Result<(), FenParseError> {
         let board = Board::from_str("8/7k/8/5r2/1KN5/2R5/8/8 w - - 0 1")?;
         assert_eq!(kings_distance(&board), 6);
         Ok(())
@@ -112,14 +123,14 @@ mod tests {
     }
 
     #[test]
-    fn test_open_files() -> Result<(), chess::Error> {
+    fn test_open_files() -> Result<(), FenParseError> {
         let board = Board::from_str("rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1")?;
         assert_eq!(open_files(&board), 0x8282828282828282);
         Ok(())
     }
 
     #[test]
-    fn test_half_open_files() -> Result<(), chess::Error> {
+    fn test_half_open_files() -> Result<(), FenParseError> {
         let board = Board::from_str("rnbqkbnr/p1ppp1p1/8/8/8/8/P1P1PPP1/RNBQKBNR w KQkq - 0 1")?;
         assert_eq!(half_open_files(&board), 0x2828282828282828);
         Ok(())

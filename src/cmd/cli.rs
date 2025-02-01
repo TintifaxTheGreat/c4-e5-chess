@@ -1,11 +1,10 @@
 use super::time_management::TimeManagement;
 use crate::engine::game::Game;
 use crate::misc::types::*;
-use chess::{Board, ChessMove, Color};
+use cozy_chess::{util, Board, Color};
 use log::{error, info};
 use std::{
     io::stdin,
-    mem,
     str::{FromStr, SplitWhitespace},
 };
 
@@ -92,10 +91,11 @@ impl Cli {
                             }
                         }
                     }
+                    fen = fen.trim_end().to_string();
                     match Board::from_str(fen.as_str()) {
                         Ok(b) => self.game.board = b,
-                        Err(_) => {
-                            error!("FEN not valid");
+                        Err(e) => {
+                            error!("FEN not valid: {}", e);
                             return;
                         }
                     }
@@ -107,12 +107,11 @@ impl Cli {
                 "moves" => loop {
                     match args.next() {
                         Some(move_string) => {
-                            let mut result = Board::default();
-                            match ChessMove::from_str(move_string) {
+                            match util::parse_uci_move(&self.game.board, move_string) {
                                 Ok(m) => {
+                                    info!("Move: {}", move_string);
                                     self.game.game_history.inc(&self.game.board);
-                                    self.game.board.make_move(m, &mut result);
-                                    self.game.board = result;
+                                    self.game.board.play_unchecked(m);
                                     if self.game.board.side_to_move() == Color::Black {
                                         self.game.move_number += 1;
                                     }
@@ -213,13 +212,10 @@ impl Cli {
     fn get_move_from_engine(&mut self) {
         match self.game.find_move() {
             Some(m) => {
-                let mut bresult = mem::MaybeUninit::<Board>::uninit();
+                let result_uci = util::display_uci_move(&self.game.board, m);
                 self.game.game_history.inc(&self.game.board);
-                let _ = &self
-                    .game
-                    .board
-                    .make_move(m, &mut unsafe { *bresult.as_mut_ptr() });
-                let result = format!("bestmove {}", m);
+                self.game.board.play_unchecked(m);
+                let result = format!("bestmove {}", result_uci);
                 info!("{} nodes examined.", self.game.node_count);
                 self.send_string(result.as_str());
             }
