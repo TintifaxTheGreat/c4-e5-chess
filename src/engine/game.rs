@@ -105,8 +105,8 @@ impl Game {
             node_count
         }
 
-        let alpha = MIN_INT;
-        let beta = MAX_INT;
+        let mut alpha = MIN_INT;
+        let mut beta = MAX_INT;
         let mut current_depth: Depth = 0;
         let mut best_move: Option<Move> = None;
         let mut best_value: MoveScore = MIN_INT;
@@ -121,6 +121,10 @@ impl Game {
         }
 
         while current_depth <= self.max_depth {
+            if current_depth > 0 {
+                alpha = best_value - ASPIRATION_WINDOW;
+                beta = best_value + ASPIRATION_WINDOW;
+            }
             prior_values.par_iter_mut().for_each(
                 |AnnotatedMove {
                      mv,
@@ -134,7 +138,13 @@ impl Game {
                     pvs.history.h.clone_from(&self.game_history.h);
                     b1.play_unchecked(*mv);
                     pvs.history.inc(&b1);
+
                     *sc = -pvs.execute(&b1, current_depth, -beta, -alpha, &self.playing, *cp);
+                    if *sc <= alpha || *sc >= beta {
+                        *sc =
+                            -pvs.execute(&b1, current_depth, MIN_INT, MAX_INT, &self.playing, *cp);
+                    }
+
                     pvs.history.dec(&b1);
                     *node_count = pvs.node_count;
                 },

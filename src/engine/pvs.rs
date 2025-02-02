@@ -1,4 +1,3 @@
-use super::constants::MIN_INT;
 use super::{constants::*, history::History, move_gen::MoveGenPrime, store::Store};
 use crate::eval::{evaluation::Evaluation, simple::Simple};
 use crate::misc::types::*;
@@ -36,7 +35,6 @@ impl Pvs {
         _capture: bool,
     ) -> MoveScore {
         let mut best_move: Option<Move> = None;
-        let mut best_value: MoveScore = MIN_INT;
 
         if !playing.load(Ordering::Relaxed) {
             return 0;
@@ -82,24 +80,21 @@ impl Pvs {
 
             self.history.dec(&b1);
 
-            if value > best_value {
-                best_value = value;
+            if value > alpha {
+                alpha = value;
                 best_move = Some(child.mv);
             }
 
-            if best_value >= beta {
+            if alpha >= beta {
                 break;
-            }
-
-            if best_value > alpha {
-                alpha = best_value;
             }
         }
 
         if let Some(bm) = best_move {
-            self.store.put(depth - 1, best_value, board, &bm);
+            self.store.put(depth - 1, alpha, board, &bm);
         }
-        best_value
+
+        alpha
     }
 }
 

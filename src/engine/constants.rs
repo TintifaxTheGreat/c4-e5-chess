@@ -23,6 +23,9 @@ pub const FORWARD_PRUNING_MINIMUM: usize = 4;
 /// Ratio w.r.t. score for moves to keep during forward pruning
 pub const FORWARD_PRUNING_RATIO: usize = 4;
 
+/// Size of aspiration window
+pub const ASPIRATION_WINDOW: MoveScore = 50;
+
 // Game
 /// Default time for one move
 pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds
@@ -30,5 +33,6 @@ pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds
 // Evaluation
 /// Score above which a game is considered as won
 pub const MATE_LEVEL: MoveScore = 55_000;
+
 /// Score for mate
 pub const MATE: MoveScore = 60_000;

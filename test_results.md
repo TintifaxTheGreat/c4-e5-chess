@@ -9,6 +9,7 @@ Time: 6000 ms
 |                       4 |                     6 | 36 (\*) |
 |                       4 |                     8 |      34 |
 |                       5 |                     6 |      35 |
+|                       8 |                     4 | 37 (\*) |
 
 # Eigenmann Test
 
@@ -17,5 +18,6 @@ Time: 15000 ms
 | FORWARD_PRUNING_MINIMUM | FORWARD_PRUNING_RATIO | Result |
 | ----------------------: | --------------------: | -----: |
 |                       4 |                     4 |     20 |
+|                       8 |                     4 |     17 |
 
 
