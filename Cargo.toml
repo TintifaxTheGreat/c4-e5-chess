@@ -23,7 +23,7 @@ rayon = "1.10"
 test-case = "3.0.0"
 ctor = "0.2"
 serial_test = "3.0"
-criterion = "0.3"
+criterion = "0.5"
 
 [profile.release]
 strip = true
