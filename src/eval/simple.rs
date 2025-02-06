@@ -40,6 +40,9 @@ impl Evaluation for Simple {
                 )
             };
 
+        // Mobility
+        value += count_moves_qrbn(b) * 2;
+
         // Rules concerning pawns
         value += (b.colored_pieces(color_attack, Piece::Pawn).0.count_ones() * 200) as MoveScore;
         value -= (b.colored_pieces(color_defend, Piece::Pawn).0.count_ones() * 200) as MoveScore;
@@ -86,20 +89,24 @@ impl Evaluation for Simple {
         value += (b.colored_pieces(color_attack, Piece::Rook).0.count_ones() * 950) as MoveScore;
         value -= (b.colored_pieces(color_defend, Piece::Rook).0.count_ones() * 950) as MoveScore;
 
-        value += ((b.colored_pieces(color_attack, Piece::Rook).0 & b_open_files).count_ones() * 40)
-            as MoveScore;
-        value -= ((b.colored_pieces(color_defend, Piece::Rook).0 & b_open_files).count_ones() * 40)
-            as MoveScore;
+        if pieces_count > 16 {
+            value += ((b.colored_pieces(color_attack, Piece::Rook).0 & b_open_files).count_ones()
+                * 40) as MoveScore;
+            value -= ((b.colored_pieces(color_defend, Piece::Rook).0 & b_open_files).count_ones()
+                * 40) as MoveScore;
 
-        value += ((b.colored_pieces(color_attack, Piece::Rook).0 & b_half_open_files).count_ones()
-            * 10) as MoveScore;
-        value -= ((b.colored_pieces(color_defend, Piece::Rook).0 & b_half_open_files).count_ones()
-            * 10) as MoveScore;
+            value += ((b.colored_pieces(color_attack, Piece::Rook).0 & b_half_open_files)
+                .count_ones()
+                * 10) as MoveScore;
+            value -= ((b.colored_pieces(color_defend, Piece::Rook).0 & b_half_open_files)
+                .count_ones()
+                * 10) as MoveScore;
 
-        value += ((b.colored_pieces(color_attack, Piece::Rook).0 & rank7).count_ones() * 80)
-            as MoveScore;
-        value -= ((b.colored_pieces(color_defend, Piece::Rook).0 & rank2).count_ones() * 80)
-            as MoveScore;
+            value += ((b.colored_pieces(color_attack, Piece::Rook).0 & rank7).count_ones() * 80)
+                as MoveScore;
+            value -= ((b.colored_pieces(color_defend, Piece::Rook).0 & rank2).count_ones() * 80)
+                as MoveScore;
+        }
 
         // Rules concerning queens
         value += (b.colored_pieces(color_attack, Piece::Queen).0.count_ones() * 1800) as MoveScore;
@@ -139,24 +146,31 @@ impl Evaluation for Simple {
                 * 150) as MoveScore;
         }
 
-        if pieces_count < 8 {
+        if pieces_count < 12 {
+            let color_weak = if value < 0 {
+                color_attack
+            } else {
+                color_defend
+            };
             let mut kings_value: MoveScore = kings_distance(b) * -10;
-            kings_value -= defending_kings_moves_count(b) as MoveScore * 10;
-            kings_value -= ((b.colored_pieces(color_defend, Piece::King).0 & CB_CENTER_0)
+
+            kings_value -= defending_kings_moves_count(b, color_weak) as MoveScore * 10;
+            kings_value -= ((b.colored_pieces(color_weak, Piece::King).0 & CB_CENTER_0)
                 .count_ones()
                 * 80) as MoveScore;
-            kings_value -= ((b.colored_pieces(color_defend, Piece::King).0 & CB_CENTER_1)
+            kings_value -= ((b.colored_pieces(color_weak, Piece::King).0 & CB_CENTER_1)
                 .count_ones()
                 * 40) as MoveScore;
-            kings_value -= ((b.colored_pieces(color_defend, Piece::King).0 & CB_BOARD_1)
-                .count_ones()
+            kings_value -= ((b.colored_pieces(color_weak, Piece::King).0 & CB_BOARD_1).count_ones()
                 * 10) as MoveScore;
-            kings_value += ((b.colored_pieces(color_defend, Piece::King).0 & CB_BOARD_0)
-                .count_ones()
+            kings_value += ((b.colored_pieces(color_weak, Piece::King).0 & CB_BOARD_0).count_ones()
                 * 50) as MoveScore;
+            if value < 0 {
+                kings_value *= -1;
+            }
+
             value += kings_value;
         }
-
         value
     }
 }
@@ -164,6 +178,7 @@ impl Evaluation for Simple {
 mod tests {
     use super::*;
     use cozy_chess::Board;
+    use log::info;
     use std::str::FromStr;
 
     #[test]
@@ -176,7 +191,7 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
         let board = Board::from_str(fen).unwrap();
         let score = Simple::evaluate(&board);
-        assert_eq!(score, -30); // White has an advantage with an extra pawn in the center, but it's black's turn
+        assert_eq!(score, -50); // White has an advantage with an extra pawn in the center, but it's black's turn
 
         let fen = "rnbqkbnr/ppp1pppp/8/8/3Pp3/8/PPP2PPP/RNBQKBNR w KQkq - 0 1";
         let board = Board::from_str(fen).unwrap();
