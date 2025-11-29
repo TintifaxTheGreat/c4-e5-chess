@@ -11,7 +11,7 @@ pub fn parse_epd(epd: String) -> (String, Vec<String>, bool) {
     let delimiter = if find_best_move { " bm " } else { " am " };
     let mut s = epd.split(delimiter);
     let fen = s.next().expect("Cannot parse EPD.");
-    let fen = format!("{} 0 1", fen);
+    let fen = format!("{fen} 0 1");
     let board = Board::from_str(&fen).expect("Invalid board.");
 
     let expected_moves_s = s.next().expect("Cannot parse EPD.");
