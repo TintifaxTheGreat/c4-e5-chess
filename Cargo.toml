@@ -16,7 +16,7 @@ timer = "0.2"
 chrono = "0.4"
 log = { version = "0.4", features = ["release_max_level_off"] }
 simple-logging = "2.0"
-hashbrown = "0.15"
+hashbrown = "0.16"
 rayon = "1.10"
 
 [dev-dependencies]
