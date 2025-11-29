@@ -37,7 +37,7 @@ impl Cli {
             match words.next() {
                 Some(command) => {
                     let args = words;
-                    info!("| {}", input_bak_str);
+                    info!("| {input_bak_str}");
                     match command {
                         "uci" => {
                             self.send_id();
@@ -95,7 +95,7 @@ impl Cli {
                     match Board::from_str(fen.as_str()) {
                         Ok(b) => self.game.board = b,
                         Err(e) => {
-                            error!("FEN not valid: {}", e);
+                            error!("FEN not valid: {e}");
                             return;
                         }
                     }
@@ -109,7 +109,7 @@ impl Cli {
                         Some(move_string) => {
                             match util::parse_uci_move(&self.game.board, move_string) {
                                 Ok(m) => {
-                                    info!("Move: {}", move_string);
+                                    info!("Move: {move_string}");
                                     self.game.game_history.inc(&self.game.board);
                                     self.game.board.play_unchecked(m);
                                     if self.game.board.side_to_move() == Color::Black {
@@ -215,7 +215,7 @@ impl Cli {
                 let result_uci = util::display_uci_move(&self.game.board, m);
                 self.game.game_history.inc(&self.game.board);
                 self.game.board.play_unchecked(m);
-                let result = format!("bestmove {}", result_uci);
+                let result = format!("bestmove {result_uci}");
                 info!("{} nodes examined.", self.game.node_count);
                 self.send_string(result.as_str());
             }
@@ -246,8 +246,8 @@ impl Cli {
 
     /// Output and log a string.
     fn send_string(&self, s: &str) {
-        println!("{}", s);
-        info!("|   {}", s);
+        println!("{s}");
+        info!("|   {s}");
     }
 }
 

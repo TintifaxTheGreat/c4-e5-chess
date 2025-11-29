@@ -49,7 +49,7 @@ impl Game {
                 game_history: History::new(),
             },
             Err(e) => {
-                error!("FEN not valid: {}", e);
+                error!("FEN not valid: {e}");
                 Self::default()
             }
         }
@@ -157,7 +157,7 @@ impl Game {
             if best_value > MATE_LEVEL {
                 info!(
                     "Mate level was reached. Best move was {}",
-                    best_move.unwrap().to_string()
+                    best_move.unwrap()
                 );
                 break;
             }
@@ -184,7 +184,7 @@ impl Game {
                 if worst_value < best_value {
                     let cut_index =
                         max(FORWARD_PRUNING_MINIMUM, moves_count / FORWARD_PRUNING_RATIO);
-                    info!("cut at {}", cut_index);
+                    info!("cut at {cut_index}");
                     prior_values.truncate(cut_index);
                 }
             }
