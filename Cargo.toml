@@ -1,6 +1,6 @@
 [package]
 name = "c4-e5-chess"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Eugen Lindorfer"]
 edition = "2021"
 description = "C4-E5 Chess is a UCI compatible chess engine based on the move generator in crate cozy-chess. These features are provided: Parallelised iterative depthening, late move pruning, principal variant search, transposition table."
