@@ -101,8 +101,9 @@ impl Cli {
                     }
                 }
 
-                // do nothing as game was already initialised with startposition
-                "startpos" => {}
+                "startpos" => {
+                    self.game = Game::default();
+                }
 
                 "moves" => loop {
                     match args.next() {
