@@ -49,6 +49,10 @@ impl Cli {
                             self.send_ready_ok();
                         }
 
+                        "setoption" => {
+                            self.set_option(args);
+                        }
+
                         "position" => {
                             self.position(args);
                         }
@@ -63,6 +67,51 @@ impl Cli {
                     }
                 }
                 None => continue,
+            }
+        }
+    }
+
+    /// UCI `setoption` command
+    fn set_option(&mut self, mut args: SplitWhitespace) {
+        while let Some(cmd) = args.next() {
+            match cmd {
+                "name" => {
+                    let option_name = match args.next() {
+                        Some(name) => name,
+                        None => break,
+                    };
+                    match option_name {
+                        "Threads" => match args.next() {
+                            Some("value") => match args.next() {
+                                Some(value_str) => match value_str.parse::<usize>() {
+                                    Ok(value) => {
+                                        self.game.num_threads = value;
+                                    }
+                                    Err(_) => break,
+                                },
+                                None => break,
+                            },
+                            _ => break,
+                        },
+
+                        "Hash" => match args.next() {
+                            Some("value") => match args.next() {
+                                Some(value_str) => match value_str.parse::<usize>() {
+                                    Ok(value) => {
+                                        self.game.hash_size = value;
+                                    }
+                                    Err(_) => break,
+                                },
+                                None => break,
+                            },
+                            _ => break,
+                        },
+
+                        _ => break,
+                    }
+                }
+                "value" => {}
+                _ => break,
             }
         }
     }
@@ -231,8 +280,15 @@ impl Cli {
     }
 
     /// Send `options`.
+    #[allow(clippy::uninlined_format_args)]
     fn send_options(&self) {
-        self.send_string("option"); //TODO extend this
+        use crate::engine::constants::*;
+        let options = format!(
+            "option name Threads type spin default {} min {} max {}\noption name Hash type spin default {} min {} max {}",
+            DEFAULT_NUM_THREADS, MIN_NUM_THREADS, MAX_NUM_THREADS,
+            DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE
+        );
+        self.send_string(&options);
     }
 
     /// Send `uci ok`.

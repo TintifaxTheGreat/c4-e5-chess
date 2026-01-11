@@ -1,6 +1,12 @@
 extern crate c4_e5_chess;
 
-use c4_e5_chess::{engine::game::Game, misc::helpers::parse_epd};
+use c4_e5_chess::{
+    engine::{
+        constants::{MAX_HASH_SIZE, MAX_NUM_THREADS},
+        game::Game,
+    },
+    misc::helpers::parse_epd,
+};
 use log::LevelFilter;
 use serial_test::serial;
 use test_case::test_case;
@@ -131,7 +137,7 @@ fn test_eigenmann(i: usize) {
         .lines()
         .collect::<Vec<&str>>();
     let (fen, expected_moves, find_best_move) = parse_epd(test_resource[i].to_string());
-    let mut g = Game::new(fen, 0, 15000);
+    let mut g = Game::new(fen, 0, 15000, MAX_NUM_THREADS, MAX_HASH_SIZE);
     if let Some(m) = g.find_move() {
         if find_best_move {
             assert!(expected_moves.contains(&m.to_string()));

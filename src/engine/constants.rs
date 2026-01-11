@@ -27,6 +27,24 @@ pub const FORWARD_PRUNING_RATIO: usize = 4;
 /// Default time for one move
 pub const DEFAULT_TIME: MoveTime = 10_000; // in Milliseconds
 
+/// Default number of threads
+pub const DEFAULT_NUM_THREADS: usize = 1;
+
+/// Minimal number of threads
+pub const MIN_NUM_THREADS: usize = 1;
+
+/// Maximal number of threads
+pub const MAX_NUM_THREADS: usize = 16;
+
+/// Default hash size in MB
+pub const DEFAULT_HASH_SIZE: usize = 16;
+
+/// Minimal hash size in MB
+pub const MIN_HASH_SIZE: usize = 1;
+
+/// Maximal hash size in MB
+pub const MAX_HASH_SIZE: usize = 1024;
+
 // Evaluation
 /// Score above which a game is considered as won
 pub const MATE_LEVEL: MoveScore = 55_000;

@@ -1,6 +1,9 @@
 extern crate c4_e5_chess;
 
-use c4_e5_chess::engine::game::Game;
+use c4_e5_chess::engine::{
+    constants::{MAX_HASH_SIZE, MAX_NUM_THREADS},
+    game::Game,
+};
 use log::LevelFilter;
 use serial_test::serial;
 use test_case::test_case;
@@ -29,7 +32,7 @@ static TEST_RESOURCE: &[&str] = &[
 #[serial]
 fn test_mate_position(i: usize) {
     let str: Vec<&str> = TEST_RESOURCE[i].split(",").collect();
-    let mut g = Game::new(str[0].to_string(), 0, 15000);
+    let mut g = Game::new(str[0].to_string(), 0, 15000, MAX_NUM_THREADS, MAX_HASH_SIZE);
     log::info!("Test case: {}", i);
     if let Some(m) = g.find_move() {
         assert_eq!(m.to_string(), str[1]);

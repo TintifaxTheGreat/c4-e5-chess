@@ -19,6 +19,8 @@ pub struct Game {
     pub max_depth: Depth,
     pub board: Board,
     pub move_time: MoveTime, // in Milliseconds
+    pub num_threads: usize,
+    pub hash_size: usize, // in MB
     pub move_number: MoveNumber,
     playing: Arc<AtomicBool>,
     pub node_count: u64,
@@ -28,7 +30,13 @@ pub struct Game {
 
 impl Game {
     /// Create a game giving a position as a FEN, max depth and a move time.
-    pub fn new(fen: String, max_depth: Depth, move_time: MoveTime) -> Self {
+    pub fn new(
+        fen: String,
+        max_depth: Depth,
+        move_time: MoveTime,
+        num_threads: usize,
+        size_hash: usize,
+    ) -> Self {
         match Board::from_str(if fen.is_empty() { FEN_START } else { &fen }) {
             Ok(board) => Self {
                 max_depth: if max_depth == 0 {
@@ -42,6 +50,16 @@ impl Game {
                     DEFAULT_TIME
                 } else {
                     move_time
+                },
+                num_threads: if num_threads == 0 {
+                    DEFAULT_NUM_THREADS
+                } else {
+                    num_threads
+                },
+                hash_size: if size_hash == 0 {
+                    DEFAULT_HASH_SIZE
+                } else {
+                    size_hash
                 },
                 move_number: 0,
                 node_count: 0,
@@ -205,6 +223,6 @@ impl Game {
 
 impl Default for Game {
     fn default() -> Game {
-        Game::new(String::from(""), 0, 0)
+        Game::new(String::from(""), 0, 0, 0, 0)
     }
 }

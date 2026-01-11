@@ -59,11 +59,14 @@ mod tests {
 
     #[test]
     fn test_history() {
-        let g1 = Game::new("".to_string(), 10, 10000);
+        use crate::engine::constants::*;
+        let g1 = Game::new("".to_string(), 10, 10000, MAX_NUM_THREADS, MAX_HASH_SIZE);
         let g2 = Game::new(
             "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2".to_string(),
             10,
             10000,
+            MAX_NUM_THREADS,
+            MAX_HASH_SIZE,
         );
         let mut history = History::new();
 

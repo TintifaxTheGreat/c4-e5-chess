@@ -75,7 +75,8 @@ mod tests {
 
     #[test]
     fn test_store() {
-        let g = Game::new("".to_string(), 10, 10000);
+        use crate::engine::constants::*;
+        let g = Game::new("".to_string(), 10, 10000, MAX_NUM_THREADS, MAX_HASH_SIZE);
         let mut store = Store::new();
 
         let result = store.get(5, &g.board);

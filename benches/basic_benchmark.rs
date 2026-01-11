@@ -1,13 +1,13 @@
 extern crate c4_e5_chess;
 
-use std::str::FromStr;
-
 use c4_e5_chess::{
-    engine::{game::Game, move_gen::MoveGenPrime},
+    engine::{constants::*, game::Game, move_gen::MoveGenPrime},
     eval::{evaluation::Evaluation, simple::Simple},
 };
 use cozy_chess::{Board, Move};
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
+use std::str::FromStr;
 
 pub fn criterion_evaluate(c: &mut Criterion) {
     let board = Board::default();
@@ -27,7 +27,7 @@ pub fn criterion_movegen(c: &mut Criterion) {
 
 pub fn criterion_find_move(c: &mut Criterion) {
     let fen = "4r1k1/5bpp/2p5/3pr3/8/1B3pPq/PPR2P2/2R2QK1 b - - 0 1";
-    let mut game = Game::new(fen.to_string(), 0, 15000);
+    let mut game = Game::new(fen.to_string(), 0, 15000, MAX_NUM_THREADS, MAX_HASH_SIZE);
     c.bench_function("find_move", |b| b.iter(|| black_box(&mut game).find_move()));
 }
 

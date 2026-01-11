@@ -20,9 +20,10 @@ fn init() {
 #[test_case(3)]
 #[serial]
 fn test_debug(i: usize) {
+    use c4_e5_chess::engine::constants::*;
     let test_resource = include_str!("epd/debug.epd").lines().collect::<Vec<&str>>();
     let (fen, expected_moves, find_best_move) = parse_epd(test_resource[i].to_string());
-    let mut g = Game::new(fen, 0, 6000);
+    let mut g = Game::new(fen, 0, 6000, MAX_NUM_THREADS, MAX_HASH_SIZE);
     if let Some(m) = g.find_move() {
         if find_best_move {
             assert!(expected_moves.contains(&m.to_string()));
