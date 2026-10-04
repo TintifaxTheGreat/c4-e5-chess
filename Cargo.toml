@@ -21,7 +21,7 @@ rayon = "1.10"
 
 [dev-dependencies]
 test-case = "3.0.0"
-ctor = "0.6"
+ctor = "1.0"
 serial_test = "3.0"
 criterion = "0.8"
 
