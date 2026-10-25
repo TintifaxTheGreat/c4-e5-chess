@@ -14,4 +14,4 @@ These features are provided:
 - Transposition table
 
 ## Documentation
-https://docs.rs/c4-e5-chess/0.3.2
+https://docs.rs/c4-e5-chess/0.3.3
