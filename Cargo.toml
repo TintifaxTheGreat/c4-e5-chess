@@ -16,13 +16,13 @@ timer = "0.2"
 chrono = "0.4"
 log = { version = "0.4", features = ["release_max_level_off"] }
 simple-logging = "2.0"
-hashbrown = "0.16"
+hashbrown = "0.17"
 rayon = "1.10"
 
 [dev-dependencies]
 test-case = "3.0.0"
 ctor = "1.0"
-serial_test = "3.0"
+serial_test = "4.0"
 criterion = "0.8"
 
 [profile.release]
