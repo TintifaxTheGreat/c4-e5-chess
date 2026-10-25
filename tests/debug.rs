@@ -8,7 +8,7 @@ use test_case::test_case;
 const LOG_LOCATION: &str = "c4e5chess.log";
 
 #[cfg(test)]
-#[ctor::ctor]
+#[ctor::ctor(unsafe)]
 fn init() {
     simple_logging::log_to_file(LOG_LOCATION, LevelFilter::Info)
         .expect("Logfile cannot be opened.");
