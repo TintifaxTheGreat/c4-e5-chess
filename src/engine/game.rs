@@ -5,7 +5,7 @@ use cozy_chess::{Board, Move};
 use log::{error, info};
 use rayon::prelude::*;
 use std::{
-    cmp::max,
+    cmp::{max, Reverse},
     str::FromStr,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -150,7 +150,7 @@ impl Game {
                 prior_values = stabilise_search_results(&prior_values_old, &prior_values);
             }
 
-            prior_values.sort_by(|a, b| b.sc.cmp(&a.sc));
+            prior_values.sort_by_key(|a| Reverse(a.sc));
 
             best_move = Some(prior_values[0].mv);
             best_value = prior_values[0].sc;
